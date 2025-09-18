@@ -2,7 +2,7 @@ export default {
   settings: "Ayarlar",
   language: "Dil",
   settingsText: "Dilini İngilizce olarak değiştir",
-  appHeader: "Ranin",
+  appHeader: "Dozan",
   welcome: "Note Quest'e Hoş Geldiniz",
   introGame: "Tanıtım Oyunu",
   learnMethod: "Yöntem",

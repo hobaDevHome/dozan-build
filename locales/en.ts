@@ -2,7 +2,7 @@ export default {
   settings: "Settings",
   language: "Language",
   settingsText: "Change your language to English",
-  appHeader: "Ranin",
+  appHeader: "Dozan",
   welcome: "Welcome to Note Quest",
   introGame: "Intro Game",
   learnMethod: "The Method",

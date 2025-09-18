@@ -2,7 +2,7 @@ export default {
   settings: "تنظیمات",
   language: "زبان",
   settingsText: "زبان خود را به انگلیسی تغییر دهید",
-  appHeader: "رنین",
+  appHeader: "Dozan",
   welcome: "به نوت کوئست خوش آمدید",
   introGame: "بازی مقدماتی",
   learnMethod: "روش",
