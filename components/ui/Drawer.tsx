@@ -22,7 +22,7 @@ import Foundation from "@expo/vector-icons/Foundation";
 import "react-native-gesture-handler";
 import { useSettings } from "@/context/SettingsContext";
 import { useRouter } from "expo-router";
-
+import type { Href } from "expo-router";
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
   { code: "ar", name: "العربية", flag: "🇸🇦" },
@@ -83,7 +83,6 @@ function CustomDrawerContent() {
       type: "SET_LANGUAGE",
       payload: lang,
     });
-    // navigation.dispatch(DrawerActions.closeDrawer());
   };
 
   const toggleAutoQuestionJump = (auto: boolean) => {
@@ -93,7 +92,7 @@ function CustomDrawerContent() {
       type: "SET_AUTOQUESTIONJUMP",
       payload: auto,
     });
-    // navigation.dispatch(DrawerActions.closeDrawer());
+
     console.log(state.autoQuestionJump);
   };
 
@@ -103,7 +102,6 @@ function CustomDrawerContent() {
       type: "SET_BACKTOTONIC",
       payload: back,
     });
-    //  navigation.dispatch(DrawerActions.closeDrawer());
   };
 
   // a handler for choosieng hte innstrument
@@ -112,13 +110,11 @@ function CustomDrawerContent() {
       type: "SET_INSTRUMENT",
       payload: instrument,
     });
-    // navigation.dispatch(DrawerActions.closeDrawer());
   };
 
   const navigateTo = (screenName: string) => {
     console.log("navigate to:", screenName);
-    router.push("/" + screenName);
-    //navigation.dispatch(DrawerActions.closeDrawer());
+    router.push(("/" + screenName) as Href);
   };
 
   return (
@@ -127,7 +123,7 @@ function CustomDrawerContent() {
 
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.dispatch(DrawerActions.closeDrawer())}
+          onPress={() => router.back()}
           style={styles.closeButton}
         >
           <Ionicons name="close" size={24} color="#333" />
