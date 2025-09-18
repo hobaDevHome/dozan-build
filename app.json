@@ -1,8 +1,9 @@
 {
   "expo": {
+    "privacy": "public",
     "name": "Dozan",
     "slug": "Dozan",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -13,7 +14,7 @@
       "runtimeVersion": {
         "policy": "appVersion"
       },
-      "bundleIdentifier": "com.hobaexpoaccount.eartrainingapp",
+      "bundleIdentifier": "com.hobaexpoaccount.dozan",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -23,9 +24,9 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#652eb6"
       },
-      "package": "com.hobaexpoaccount.eartrainingapp",
-      "versionCode": 2,
-      "runtimeVersion": "1.1.0",
+      "package": "com.hobaexpoaccount.dozan",
+      "versionCode": 3,
+      "runtimeVersion": "3.0.0",
       "permissions": []
     },
     "web": {
@@ -43,8 +44,16 @@
           "backgroundColor": "#652eb6"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-custom-assets",
+        {
+          "assetsPaths": ["./assets/sounds"],
+          "preserveFolder": true
+        }
+      ]
     ],
+
     "experiments": {
       "typedRoutes": true
     },
