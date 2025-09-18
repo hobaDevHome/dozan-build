@@ -24,7 +24,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.hobaexpoaccount.eartrainingapp",
-      "runtimeVersion": "1.0.0"
+      "versionCode": 1,
+      "runtimeVersion": "1.0.0",
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +39,6 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/sp1.png",
-
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
