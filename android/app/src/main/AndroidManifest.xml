@@ -30,6 +30,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="exp+ear-training-app"/>
+        <data android:scheme="exp+dozan"/>
       </intent-filter>
     </activity>
   </application>
