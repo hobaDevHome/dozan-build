@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ear-training-app",
-    "slug": "ear-training-app",
+    "name": "Dozan",
+    "slug": "Dozan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#652eb6"
       },
       "package": "com.hobaexpoaccount.eartrainingapp",
       "versionCode": 1,
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/sp1.png",
+          "image": "./assets/images/splash_screen.png",
           "resizeMode": "cover",
           "backgroundColor": "#652eb6"
         }
