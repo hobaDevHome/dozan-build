@@ -5,6 +5,7 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
+import { HeaderBackButton } from "@react-navigation/elements";
 
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, useCallback } from "react";
@@ -131,13 +132,13 @@ function AppContent() {
             title: state.labels.dictations.title,
             headerShown: true,
             headerTitleAlign: "center",
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -149,22 +150,22 @@ function AppContent() {
             ),
           })}
         />
+
         <Stack.Screen
           name="Dictations/Dictaionsplay"
           options={({ navigation }) => ({
             title: state.labels.dictations.title,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
-                  router.replace("/Dictations"); // أو أي مسار تحبي ترجعي له بدل الهوم
+                  router.replace("/Dictations");
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -176,20 +177,20 @@ function AppContent() {
             ),
           })}
         />
+
         <Stack.Screen
           name="IntroGame/index"
           options={({ navigation }) => ({
             title: state.labels.introGamePage.header,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -207,16 +208,15 @@ function AppContent() {
             title: state.labels.introGamePage.levelPage.header,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
-                  router.replace("/IntroGame"); // أو أي مسار تحبي ترجعي له بدل الهوم
+                  router.replace("/IntroGame");
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -234,16 +234,15 @@ function AppContent() {
             title: state.labels.introGamePage.pages.overview,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
-                  router.replace("/IntroGame"); // أو أي مسار تحبي ترجعي له بدل الهوم
+                  router.replace("/IntroGame");
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -261,14 +260,13 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -287,16 +285,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
-                  router.replace("/Training"); // أو أي مسار تحبي ترجعي له بدل الهوم
+                  router.replace("/Training");
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -314,17 +311,16 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.play,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
                   console.log("from play to training screen");
                   router.push("/Training/TrainingScreen"); // أو أي مسار تحبي ترجعي له بدل الهوم
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -342,16 +338,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.listen,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => {
                   router.replace("/Training/TrainingScreen"); // أو أي مسار تحبي ترجعي له بدل الهوم
                 }}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -369,14 +364,13 @@ function AppContent() {
             title: state.labels.learnMethod,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -395,14 +389,13 @@ function AppContent() {
             title: state.labels.intervals,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -420,14 +413,13 @@ function AppContent() {
             title: state.labels.maqamat,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
@@ -445,14 +437,13 @@ function AppContent() {
             title: state.labels.Playground,
             headerShown: true,
             headerTitleAlign: "center",
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
+
+            headerLeft: (props) => (
+              <HeaderBackButton
+                {...props}
                 onPress={() => navigation.goBack()}
-                style={{ marginLeft: 10 }}
-              >
-                <Ionicons name="arrow-back" size={28} color="black" />
-              </TouchableOpacity>
+                tintColor="black" // لون السهم
+              />
             ),
             headerRight: () => (
               <TouchableOpacity
