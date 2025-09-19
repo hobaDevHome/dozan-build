@@ -80,7 +80,7 @@ function AppContent() {
   useEffect(() => {
     if (Platform.OS === "android") {
       // هذا يخبر النظام بأننا نريد إخفاء الأشرطة، وإظهارها عند السحب فقط
-      NavigationBar.setBehaviorAsync("immersive-sticky");
+      NavigationBar.setBehaviorAsync("sticky-immersive" as any);
       // هذا يقوم بالإخفاء الفعلي عند بدء تشغيل التطبيق
       NavigationBar.setVisibilityAsync("hidden");
     }
@@ -107,10 +107,15 @@ function AppContent() {
           name="index"
           options={({ navigation }) => ({
             title: state.labels.appHeader,
+
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
             headerTitleStyle: {
+              color: "black",
               fontWeight: "bold",
               fontSize: 22,
-              color: "#222", // title text color
             },
             headerShown: true,
             headerTitleAlign: "center",
@@ -132,7 +137,15 @@ function AppContent() {
             title: state.labels.dictations.title,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -157,7 +170,15 @@ function AppContent() {
             title: state.labels.dictations.title,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -184,7 +205,15 @@ function AppContent() {
             title: state.labels.introGamePage.header,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -208,7 +237,15 @@ function AppContent() {
             title: state.labels.introGamePage.levelPage.header,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -234,7 +271,15 @@ function AppContent() {
             title: state.labels.introGamePage.pages.overview,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -260,7 +305,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -285,7 +338,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -311,7 +372,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.play,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -338,7 +407,15 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.listen,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -364,7 +441,15 @@ function AppContent() {
             title: state.labels.learnMethod,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -389,7 +474,15 @@ function AppContent() {
             title: state.labels.intervals,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -413,7 +506,15 @@ function AppContent() {
             title: state.labels.maqamat,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
@@ -437,7 +538,15 @@ function AppContent() {
             title: state.labels.Playground,
             headerShown: true,
             headerTitleAlign: "center",
-
+            headerStyle: {
+              backgroundColor: "white",
+            },
+            headerTintColor: "black",
+            headerTitleStyle: {
+              color: "black",
+              fontWeight: "bold",
+              fontSize: 22,
+            },
             headerLeft: (props) => (
               <HeaderBackButton
                 {...props}
