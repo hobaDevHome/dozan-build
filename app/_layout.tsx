@@ -4,6 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import { StatusBar } from "expo-status-bar";
 
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, useCallback } from "react";
@@ -58,6 +59,7 @@ export default function RootLayout() {
   return (
     <SettingsProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <StatusBar style="dark" backgroundColor="#FAFAFA" translucent={false} />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <AppContent />
         </GestureHandlerRootView>
@@ -76,13 +78,10 @@ function AppContent() {
   }, []);
   useEffect(() => {
     if (Platform.OS === "android") {
-      // هذا الأمر يخبر النظام بالخروج من وضع ملء الشاشة
-      // "leanback" هو وضع يظهر كل من شريط الحالة وشريط التنقل
-      NavigationBar.setVisibilityAsync("visible");
-
-      // هذا يجعل شريط الحالة شفافًا ليظهر محتوى التطبيق خلفه
-      // وهو يعطي نفس تأثير الكود السابق
-      SystemUI.setBackgroundColorAsync("transparent");
+      // هذا يخبر النظام بأننا نريد إخفاء الأشرطة، وإظهارها عند السحب فقط
+      NavigationBar.setBehaviorAsync("immersive-sticky");
+      // هذا يقوم بالإخفاء الفعلي عند بدء تشغيل التطبيق
+      NavigationBar.setVisibilityAsync("hidden");
     }
   }, []);
 
