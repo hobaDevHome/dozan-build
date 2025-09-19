@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
@@ -180,17 +187,23 @@ const DictaionsPlay = () => {
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
-      let soundObject = new Audio.Sound();
+      // --- بداية التغيير ---
+      const soundModule = folder(`./${soundName}.mp3`);
+
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
+
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       soundRef.current = soundObject;
-      await soundObject.loadAsync({ uri: asset.uri });
+      // --- نهاية التغيير ---
+
       await soundObject.playAsync();
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
         if (status && status.isLoaded && status.didJustFinish) {
           await soundObject.unloadAsync().catch(console.warn);
           if (soundRef.current === soundObject) {
-            // Ensure we only nullify if it's the same sound object
             soundRef.current = null;
           }
         }
@@ -412,11 +425,18 @@ const DictaionsPlay = () => {
       return;
     }
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
-      let soundObject = new Audio.Sound();
+      // --- بداية التغيير ---
+      const soundModule = folder(`./${soundName}.mp3`);
+
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
+
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       setCurrentSoundObject(soundObject);
-      await soundObject.loadAsync({ uri: asset.uri });
+      // --- نهاية التغيير ---
+
       await soundObject.playAsync();
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
         if (status && status.isLoaded && status.didJustFinish) {
@@ -434,7 +454,10 @@ const DictaionsPlay = () => {
   };
 
   return (
-    <View style={styles.mainContainer}>
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* // Title and Score Area */}
       <View style={styles.tilteContainer}>
         <Text style={styles.title}>
@@ -557,19 +580,21 @@ const DictaionsPlay = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 // Add new styles and adjust existing ones
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    flexDirection: "column",
-    // justifyContent: "space-between", // Adjusted for better layout
+  scrollView: {
+    flex: 1, // اجعلي الـ ScrollView نفسه يملأ الشاشة
     backgroundColor: "#FAFAFA",
-    padding: 10,
   },
+  contentContainer: {
+    padding: 10, // ضعي الـ padding هنا
+    flexGrow: 1,
+  },
+
   feedbackContainer: {
     alignItems: "center",
     marginVertical: 20, // Add some vertical space

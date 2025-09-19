@@ -17,9 +17,9 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-
+import * as NavigationBar from "expo-navigation-bar";
 import { DrawerActions } from "@react-navigation/native";
-
+import * as SystemUI from "expo-system-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { SettingsProvider, useSettings } from "../context/SettingsContext";
@@ -72,6 +72,17 @@ function AppContent() {
   useEffect(() => {
     if (Platform.OS === "web") {
       setIsWeb(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      // هذا الأمر يخبر النظام بالخروج من وضع ملء الشاشة
+      // "leanback" هو وضع يظهر كل من شريط الحالة وشريط التنقل
+      NavigationBar.setVisibilityAsync("visible");
+
+      // هذا يجعل شريط الحالة شفافًا ليظهر محتوى التطبيق خلفه
+      // وهو يعطي نفس تأثير الكود السابق
+      SystemUI.setBackgroundColorAsync("transparent");
     }
   }, []);
 
@@ -145,6 +156,7 @@ function AppContent() {
             title: state.labels.dictations.title,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -171,6 +183,7 @@ function AppContent() {
             title: state.labels.introGamePage.header,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -195,6 +208,7 @@ function AppContent() {
             title: state.labels.introGamePage.levelPage.header,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -221,6 +235,7 @@ function AppContent() {
             title: state.labels.introGamePage.pages.overview,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -247,6 +262,7 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -272,6 +288,7 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingHome.title,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -298,6 +315,7 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.play,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -325,6 +343,7 @@ function AppContent() {
             title: state.labels.basicTrainingPages.basicTrainingLevel.listen,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => {
@@ -351,6 +370,7 @@ function AppContent() {
             title: state.labels.learnMethod,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -376,6 +396,7 @@ function AppContent() {
             title: state.labels.intervals,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -400,6 +421,7 @@ function AppContent() {
             title: state.labels.maqamat,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -424,6 +446,7 @@ function AppContent() {
             title: state.labels.Playground,
             headerShown: true,
             headerTitleAlign: "center",
+            headerBackVisible: false,
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => navigation.goBack()}

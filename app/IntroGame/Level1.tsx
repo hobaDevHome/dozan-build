@@ -156,13 +156,16 @@ const Level1 = () => {
           return resolve();
         }
 
-        const file = folder(`./${soundName}.mp3`);
-        const asset = Asset.fromModule(file);
+        const soundModule = folder(`./${soundName}.mp3`);
+        if (!soundModule) {
+          console.error(`Sound module not found for ${soundName}.mp3`);
+          return resolve();
+        }
 
-        const soundObject = new Audio.Sound();
+        const { sound: soundObject } = await Audio.Sound.createAsync(
+          soundModule
+        );
         soundRef.current = soundObject;
-
-        await soundObject.loadAsync({ uri: asset.uri });
         await soundObject.playAsync();
 
         // فقط لو مش "cords" نوقفه بعد مدة
@@ -226,24 +229,29 @@ const Level1 = () => {
 
     if (!folder) {
       console.error(`Instrument "${state.instrument}" not found.`);
+      setIsPlaying(false);
       return;
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
+      // --- بداية التغيير ---
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        setIsPlaying(false);
+        return;
+      }
 
-      // Create a new sound object and set it as the current sound
-      let soundObject = new Audio.Sound();
-      soundRef.current = soundObject; // Store reference
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
+      soundRef.current = soundObject;
+      // --- نهاية التغيير ---
 
-      await soundObject.loadAsync({ uri: asset.uri });
       await soundObject.playAsync();
 
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
+        if (status && status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync();
+          if (soundRef.current === soundObject) {
             soundRef.current = null;
           }
         }
@@ -283,19 +291,23 @@ const Level1 = () => {
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
-      let soundObject = new Audio.Sound();
-      setCurrentSoundObject(soundObject);
+      // --- بداية التغيير ---
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
 
-      await soundObject.loadAsync({ uri: asset.uri });
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
+      setCurrentSoundObject(soundObject);
+      // --- نهاية التغيير ---
+
       await soundObject.playAsync();
 
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
-          }
+        if (status && status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync();
+          setCurrentSoundObject(null);
         }
       });
     } catch (error) {

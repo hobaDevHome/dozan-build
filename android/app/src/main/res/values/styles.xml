@@ -6,16 +6,13 @@
     <item name="android:statusBarColor">#652eb6</item>
   </style>
   <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen">
-    <!-- 1. غيري هذا السطر -->
+
     <item name="windowSplashScreenBackground">@drawable/splash_screen</item> 
     
-    <!-- 2. احذفي أو علّقي هذا السطر -->
-    <!-- <item name="windowSplashScreenAnimatedIcon">@drawable/splashscreen_logo</item> -->
+
 
     <item name="postSplashScreenTheme">@style/AppTheme</item>
-    
-    <!-- 3. احذفي أو علّقي هذا السطر (اختياري لكن موصى به) -->
-    <!-- <item name="android:windowSplashScreenBehavior">icon_preferred</item> -->
+
 </style>
 
 </resources>

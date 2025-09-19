@@ -190,15 +190,33 @@ const PlaygroundScreen: React.FC<PlaygroundScreenProps> = ({
       return;
     }
 
+    // try {
+    //   const file = folder(`./${soundName}.mp3`);
+    //   const asset = Asset.fromModule(file);
+    //   if (!asset.uri) {
+    //     console.error(`Asset not found for ${soundName}.mp3.`);
+    //     return;
+    //   }
+    //   const { sound } = await Audio.Sound.createAsync({ uri: asset.uri });
+
+    //   await sound.playAsync();
+    //   sound.setOnPlaybackStatusUpdate(async (status) => {
+    //     if (status.isLoaded && status.didJustFinish) {
+    //       await sound.unloadAsync();
+    //     }
+    //   });
+    // } catch (error) {
+    //   console.error(`Error playing sound ${soundName}:`, error);
+    // }
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
-      if (!asset.uri) {
-        console.error(`Asset not found for ${soundName}.mp3.`);
-        return;
-      }
-      const { sound } = await Audio.Sound.createAsync({ uri: asset.uri });
+      // الخطوة 1: احصل على الملف باستخدام require.context كما كنت تفعل
+      const soundModule = folder(`./${soundName}.mp3`);
+
+      // الخطوة 2 (التغيير الجوهري): مرر هذا الـ module مباشرة إلى createAsync
+      const { sound } = await Audio.Sound.createAsync(soundModule);
+
       await sound.playAsync();
+
       sound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.isLoaded && status.didJustFinish) {
           await sound.unloadAsync();

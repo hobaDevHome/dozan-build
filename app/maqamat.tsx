@@ -182,14 +182,15 @@ const MaqamTrainingScreen = () => {
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
 
-      // Create a new sound object and set it as the current sound
-      let soundObject = new Audio.Sound();
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       setCurrentSoundObject(soundObject);
 
-      await soundObject.loadAsync({ uri: asset.uri });
       await soundObject.playAsync();
 
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
@@ -250,14 +251,14 @@ const MaqamTrainingScreen = () => {
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
 
-      // Create a new sound object and set it as the current sound
-      let soundObject = new Audio.Sound();
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       setCurrentSoundObject(soundObject);
-
-      await soundObject.loadAsync({ uri: asset.uri });
       await soundObject.playAsync();
 
       setIsExamplePlaying(true);
@@ -360,14 +361,14 @@ const MaqamTrainingScreen = () => {
     }
 
     try {
-      const file = folder(`./${soundName}.mp3`);
-      const asset = Asset.fromModule(file);
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) {
+        console.error(`Sound module not found for ${soundName}.mp3`);
+        return;
+      }
 
-      // Create a new sound object and set it as the current sound
-      let soundObject = new Audio.Sound();
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       setCurrentSoundObject(soundObject);
-
-      await soundObject.loadAsync({ uri: asset.uri });
       await soundObject.playAsync();
 
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
