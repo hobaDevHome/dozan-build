@@ -150,7 +150,7 @@ export default {
     intervalsNamesMap: {
       "Unison": "Birleşik Ses",
       "Minor Second": "Küçük İkili",
-      "Three Quarter Tone": "Üç Çeyrek Ton",
+      "Three Quarters": "Üç Çeyrek",
       "Major Second": "Büyük İkili",
       "Minor Third": "Küçük Üçlü",
       "Major Third": "Büyük Üçlü",

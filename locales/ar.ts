@@ -149,7 +149,7 @@ export default {
     intervalsNamesMap: {
       "Unison": "نفس النغمة",
       "Minor Second": "ثانية صغيرة",
-      "Three Quarter Tone": "ثلاثة ارباع تون",
+      "Three Quarters": "ثلاثة ارباع ",
       "Major Second": "ثانية كبيرة",
       "Minor Third": "ثالثة صغيرة",
       "Major Third": "ثالثة كبيرة",

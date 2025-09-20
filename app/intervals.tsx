@@ -33,17 +33,9 @@ const instrumentImages: { [key: string]: any } = {
 const intervalSteps: Record<string, string[]> = {
   "Unison": ["re", "re"],
   "Minor Second": ["re", "mi_b"],
-  "Three Quarter Tone": ["re", "mi_q"],
+  "Three Quarters": ["re", "mi_q"],
   "Major Second": ["re", "mi"],
   "Minor Third": ["re", "fa"],
-  // "Major Third": ["do", "mi"],
-  // "Perfect Fourth": ["do", "fa"],
-  // "Tritone": ["do", "fa_d"],
-  // "Perfect Fifth": ["do", "sol"],
-  // "Minor Sixth": ["do", "la_b"],
-  // "Major Sixth": ["do", "la"],
-  // "Minor Seventh": ["do", "si_b"],
-  // "Major Seventh": ["do", "si"],
   "Octave": ["re", "ree"],
 };
 const IntervalTrainingScreen = () => {
@@ -583,9 +575,9 @@ const styles = StyleSheet.create({
   },
   intervalSelectionContainer: {
     width: "100%",
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "row", // الأزرار بجانب بعضها
+    flexWrap: "wrap", // عندما لا توجد مساحة، انتقل لسطر جديد
+    justifyContent: "space-between", // توزيع المسافة بالتساوي بين الزرين
   },
   buttonText: {
     fontSize: 18,

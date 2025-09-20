@@ -40,11 +40,14 @@ const styles = StyleSheet.create({
     padding: 5,
     margin: 3,
     borderRadius: 5,
-    backgroundColor: "#ccc",
+    backgroundColor: "#f3f3f3",
+    width: "45%", // <-- هذا هو الجزء الأهم. 48% تترك مسافة 4% بين الزرين
+    marginBottom: 10,
+    alignItems: "center",
   },
   selected: { backgroundColor: "#DDA0DD" },
   selectedText: { color: "#fff" },
-  unselectedText: { color: "#000" },
+  unselectedText: { color: "#aeaeae" },
 });
 
 export default OptionButton;

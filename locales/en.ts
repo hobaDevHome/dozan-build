@@ -155,7 +155,7 @@ export default {
     intervalsNamesMap: {
       "Unison": "Unison",
       "Minor Second": "Minor Second",
-      "Three Quarter Tone": "Three-Quarter Tone",
+      "Three Quarters": "Three-Quarters",
       "Major Second": "Major Second",
       "Minor Third": "Minor Third",
       "Major Third": "Major Third",

@@ -141,7 +141,7 @@ export default {
     intervalsNamesMap: {
       "Unison": "یونی‌سون",
       "Minor Second": "دوم کوچک",
-      "Three Quarter Tone": "سه چهارم پرده",
+      "Three Quarters": "سه چهارم ",
       "Major Second": "دوم بزرگ",
       "Minor Third": "سوم کوچک",
       "Major Third": "سوم بزرگ",
