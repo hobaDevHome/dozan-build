@@ -340,7 +340,7 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
                           source={require("@/assets/images/half_flat.png")}
                           style={[
                             styles.toggleButtonImage,
-                            { marginBottom: 130 },
+                            { marginBottom: 125 },
                           ]}
                           resizeMode="contain"
                         />
@@ -388,7 +388,7 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
                           source={require("@/assets/images/half_flat_w.png")}
                           style={[
                             styles.toggleButtonImage,
-                            { marginBottom: 70 },
+                            { marginBottom: 67 },
                           ]}
                           resizeMode="contain"
                         />

@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAFAFA",
   },
   contentContainer: {
-    padding: 10, // ضعي الـ padding هنا
+    padding: 0, // ضعي الـ padding هنا
     flexGrow: 1,
   },
 
