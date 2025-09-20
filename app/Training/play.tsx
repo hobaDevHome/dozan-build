@@ -1,14 +1,6 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  Switch,
-} from "react-native";
-import React, { useState, useRef, useEffect } from "react";
-import { RouteProp, useRoute } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   scalesLists,
   soundFolders,
@@ -17,17 +9,9 @@ import {
   maqamsSoundFolders,
 } from "@/constants/scales";
 import { useSettings } from "@/context/SettingsContext";
-import { Asset } from "expo-asset";
 import { Audio } from "expo-av";
-import MaqamTrainingScreen from "../maqamat";
 import { Ionicons } from "@expo/vector-icons";
 
-type PlayScreenParams = {
-  id: string;
-  scale: string;
-  levelChoices: string[];
-  label: string;
-};
 type Maqam =
   | "Rast"
   | "Bayaty"
@@ -39,8 +23,10 @@ type Maqam =
   | "Kurd";
 
 const TrainingPlay = () => {
-  const { state, dispatch } = useSettings();
+  const { state } = useSettings();
   const { id, scale, levelChoices = [], label } = state.trainingParams || {};
+
+  // --- المتغيرات الأصلية للمكون ---
   const [currentTone, setCurrentTone] = useState<string>("");
   const [score, setScore] = useState({ correct: 0, incorrect: 0 });
   const [playChords, setPlayChords] = useState<boolean>(true);
@@ -55,16 +41,15 @@ const TrainingPlay = () => {
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(1);
 
-  const navigation = useNavigation();
+  // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
-  const cancelled = useRef(false);
-
-  // --- تعديل هنا: تعريف ref لمتابعة أحدث قيمة للـ levelChoices
+  const maqamSoundRef = useRef<Audio.Sound | null>(null); // Ref مخصص لصوت المقام
+  const timersRef = useRef<NodeJS.Timeout[]>([]); // Ref لتخزين كل المؤقتات
   const levelChoicesRef = useRef(levelChoices);
+
   useEffect(() => {
     levelChoicesRef.current = levelChoices;
   }, [levelChoices]);
-  // ---
 
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const levelLabels = state.labels.introGamePage.levelPage;
@@ -77,34 +62,13 @@ const TrainingPlay = () => {
     }
     return keyName2;
   });
-
   let currentKeyMap = tonesLables[state.toneLabel as keyof typeof tonesLables];
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", () => {
-      // Stop and unload sound when leaving the screen
-      if (currentSoundObject) {
-        currentSoundObject
-          .stopAsync()
-          .catch((error) => console.log("Error stopping sound:", error));
-        currentSoundObject
-          .unloadAsync()
-          .catch((error) => console.log("Error unloading sound:", error));
-      }
-    });
-
-    return unsubscribe; // Cleanup listener on unmount
-  }, [navigation, currentSoundObject]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      playRandomTone();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
+  // ======================= الحل المركزي باستخدام useFocusEffect =======================
+  useFocusEffect(
+    useCallback(() => {
+      // هذا الكود يعمل عند الدخول إلى الشاشة
+      // إعادة ضبط الحالة والبدء
       setFeedbackMessage("");
       setCanGuess(false);
       setFirstAttempt(true);
@@ -113,153 +77,86 @@ const TrainingPlay = () => {
       setIsPlaying(false);
       setCurrentTone("");
       setScore({ correct: 0, incorrect: 0 });
-      // أوقف كل الأصوات عند مغادرة الصفحة
-      if (soundRef.current) {
-        try {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
+      playRandomTone();
+
+      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      return () => {
+        // 1. إيقاف وتفريغ صوت النغمة الرئيسي
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
-        } catch (error) {
-          console.log("Error stopping/unloading soundRef:", error);
         }
-      }
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading currentSoundObject:", error);
+        // 2. إيقاف وتفريغ صوت المقام
+        if (maqamSoundRef.current) {
+          maqamSoundRef.current.stopAsync().catch(() => {});
+          maqamSoundRef.current.unloadAsync().catch(() => {});
+          maqamSoundRef.current = null;
         }
-      }
-    });
+        // 3. إلغاء جميع المؤقتات المعلقة
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      };
+    }, [])
+  );
+  // ======================= نهاية الحل =======================
 
-    return unsubscribe;
-  }, [navigation, currentSoundObject]);
+  const addTimer = (timer: NodeJS.Timeout) => {
+    timersRef.current.push(timer);
+  };
 
-  //////////////// play tone function ///////////////////////
   const playTone = async (
     note: string,
     duration: number = 1000
   ): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-      if (cancelled.current) return resolve();
+    return new Promise(async (resolve) => {
       try {
-        if (soundRef.current) {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
-          soundRef.current = null;
-        }
         const soundName = note.toLowerCase();
         const folder = soundFolders[state.instrument];
-        if (!folder) {
-          console.error(`Instrument "${state.instrument}" not found.`);
-          return resolve();
-        }
+        if (!folder) return resolve();
         const soundModule = folder(`./${soundName}.mp3`);
-        if (!soundModule) {
-          console.error(`Sound module not found for ${soundName}.mp3`);
-          return resolve();
-        }
+        if (!soundModule) return resolve();
 
         const { sound: soundObject } = await Audio.Sound.createAsync(
           soundModule
         );
         soundRef.current = soundObject;
         await soundObject.playAsync();
-        if (soundName !== "cords" || duration < 1000) {
-          setTimeout(async () => {
-            try {
-              await soundObject.stopAsync();
-              await soundObject.unloadAsync();
-              soundRef.current = null;
-            } catch (error) {
-              console.warn("Error during forced stop:", error);
-            }
+
+        const onPlaybackStatusUpdate = async (status: any) => {
+          if (status.isLoaded && status.didJustFinish) {
+            soundObject.setOnPlaybackStatusUpdate(null);
+            await soundObject.unloadAsync().catch(() => {});
             resolve();
-          }, duration);
-        } else {
-          soundObject.setOnPlaybackStatusUpdate(async (status) => {
-            if (status && status.isLoaded) {
-              if (status?.didJustFinish) {
-                await soundObject.unloadAsync();
-                soundRef.current = null;
-                resolve();
-              }
-            }
-          });
-        }
+          }
+        };
+        soundObject.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       } catch (error) {
-        console.error(`Error playing sound ${note}:`, error);
-        reject(error);
+        resolve();
       }
     });
   };
 
-  //////////////// playRandomTone function ///////////////////////
   const playRandomTone = async () => {
     setFeedbackMessage("");
     setCanGuess(true);
     setFirstAttempt(true);
-
-    if (cancelled.current) return;
     if (isPlaying) return;
 
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
-      soundRef.current = null;
-    }
-
     setIsPlaying(true);
-
     if (playChords) {
       await playTone("cords");
-      await new Promise((r) => setTimeout(r, 500));
     }
 
-    // --- تعديل هنا: استخدم ref بدل المتغير العادي
     const choices = levelChoicesRef.current;
-    const randomTone = choices[Math.floor(Math.random() * choices.length)];
-    setCurrentTone(randomTone);
-    console.log("levelChoices: ", choices);
-    console.log("Random tone: ", randomTone);
-
-    const soundName = randomTone.toLocaleLowerCase();
-    const folder = soundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
+    if (!choices || choices.length === 0) {
       setIsPlaying(false);
       return;
     }
+    const randomTone = choices[Math.floor(Math.random() * choices.length)];
+    setCurrentTone(randomTone);
 
-    try {
-      // --- بداية التغيير ---
-      const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        setIsPlaying(false);
-        return;
-      }
-
-      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      soundRef.current = soundObject;
-      // --- نهاية التغيير ---
-
-      await soundObject.playAsync();
-      soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded && status.didJustFinish) {
-          await soundObject.unloadAsync();
-          if (soundRef.current === soundObject) {
-            soundRef.current = null;
-          }
-        }
-      });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
-
+    await playTone(randomTone);
     setIsPlaying(false);
   };
 
@@ -268,9 +165,7 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i >= 0; i--) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      const duration = i === 0 ? 1200 : i === fromIndex ? 700 : 400;
-      await playTone(tone, duration);
-      await new Promise((r) => setTimeout(r, 0));
+      await playTone(tone, 400);
     }
     setButtonColors({});
   };
@@ -280,10 +175,7 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i < choices.length; i++) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      const duration =
-        i === choices.length - 1 ? 1200 : i === fromIndex ? 700 : 400;
-      await playTone(tone, duration);
-      await new Promise((r) => setTimeout(r, 0));
+      await playTone(tone, 400);
     }
     setButtonColors({});
   };
@@ -291,121 +183,90 @@ const TrainingPlay = () => {
   const handleGuess = async (guess: string) => {
     if (!canGuess) return;
     const choices = levelChoicesRef.current;
-    if (guess === currentTone) {
+    const lowerCaseGuess = guess.toLowerCase();
+
+    if (lowerCaseGuess === currentTone) {
       setCanGuess(false);
       if (firstAttempt) {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
-      setButtonColors((prev) => ({
-        ...prev,
-        [guess]: guess === currentTone ? "green" : "red",
-      }));
-      setTimeout(() => {
-        setButtonColors({});
-      }, 500);
-      const guessedIndex = choices.indexOf(guess);
+      setButtonColors({ [guess]: "green" });
+      addTimer(setTimeout(() => setButtonColors({}), 500));
+
+      const guessedIndex = choices.indexOf(lowerCaseGuess);
       if (state.backToTonic) {
         if (label === "section3") {
-          if (guessedIndex <= 3) {
-            await playPreviousNotes(guessedIndex);
-          } else {
-            await playNextNotes(guessedIndex);
-          }
+          guessedIndex <= 3
+            ? await playPreviousNotes(guessedIndex)
+            : await playNextNotes(guessedIndex);
         } else if (label === "section1") {
           await playPreviousNotes(guessedIndex);
         } else {
           await playNextNotes(guessedIndex);
         }
       } else {
-        await playTone(guess);
+        await playTone(lowerCaseGuess);
       }
-      setTimeout(() => {
-        setQuestionNumber((prev) => prev + 1);
-        playRandomTone();
-      }, 300);
+      addTimer(
+        setTimeout(() => {
+          setQuestionNumber((prev) => prev + 1);
+          playRandomTone();
+        }, 300)
+      );
     } else {
-      playTone(guess);
+      playTone(lowerCaseGuess);
       if (firstAttempt) {
         setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
       }
       setFirstAttempt(false);
-      setButtonColors((prev) => ({
-        ...prev,
-        [guess]: guess === currentTone ? "green" : "red",
-      }));
-      setTimeout(() => {
-        setButtonColors({});
-      }, 800);
+      setButtonColors({ [guess]: "red" });
+      addTimer(setTimeout(() => setButtonColors({}), 800));
     }
   };
 
   const playMaqam = async () => {
-    if (currentSoundObject !== null) {
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
+    if (maqamSoundRef.current) {
+      await maqamSoundRef.current.stopAsync().catch(() => {});
+      await maqamSoundRef.current.unloadAsync().catch(() => {});
     }
     let soundName = scale;
-    if (label === "section1") {
-      soundName = `${scale}First`;
-    } else if (label === "section2") {
-      soundName = `${scale}Second`;
-    } else if (label === "section3") {
-      soundName = `${scale}Full`;
-    }
+    if (label === "section1") soundName = `${scale}First`;
+    else if (label === "section2") soundName = `${scale}Second`;
+    else if (label === "section3") soundName = `${scale}Full`;
+
     const folder = maqamsSoundFolders[state.instrument];
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      return;
-    }
+    if (!folder) return;
+
     try {
-      // --- بداية التغيير ---
       const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
+      if (!soundModule) return;
 
       const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      setCurrentSoundObject(soundObject);
-      // --- نهاية التغيير ---
-
+      maqamSoundRef.current = soundObject;
       await soundObject.playAsync();
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded && status.didJustFinish) {
-          await soundObject.unloadAsync();
-          setCurrentSoundObject(null); // تأكدي من تحديث الحالة هنا
+        if (status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync().catch(() => {});
+          maqamSoundRef.current = null;
         }
       });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
+    } catch (error) {}
   };
 
   return (
     <View style={styles.mainContainer}>
-      {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{score.correct}</Text>
-          <Text style={styles.statLabel}>
-            {state.labels.introGamePage.levelPage.correct}
-          </Text>
+          <Text style={styles.statLabel}>{levelLabels.correct}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{score.incorrect}</Text>
-          <Text style={styles.statLabel}>
-            {" "}
-            {state.labels.introGamePage.levelPage.incorrect}
-          </Text>
+          <Text style={styles.statLabel}>{levelLabels.incorrect}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{questionNumber}</Text>
-          <Text style={styles.statLabel}> {state.labels.questionNo}</Text>
+          <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
         </View>
       </View>
 
@@ -430,15 +291,13 @@ const TrainingPlay = () => {
             <TouchableOpacity
               key={tone}
               style={[styles.toneButton]}
-              onPress={() => handleGuess(tone.toLocaleLowerCase())}
-              disabled={
-                !levelChoicesRef.current.includes(tone.toLocaleLowerCase())
-              }
+              onPress={() => handleGuess(tone)}
+              disabled={!levelChoicesRef.current.includes(tone.toLowerCase())}
             >
               <View
                 style={[
                   styles.toneButtonTextBox,
-                  !levelChoicesRef.current.includes(tone.toLocaleLowerCase())
+                  !levelChoicesRef.current.includes(tone.toLowerCase())
                     ? styles.dimmed
                     : null,
                   buttonColors[tone] === "green" && styles.correctButton,
@@ -458,13 +317,10 @@ const TrainingPlay = () => {
           <Text style={styles.feedbackText}>{feedbackMessage}</Text>
         )}
 
-        {/* Control Buttons */}
         <View style={styles.controlsContainer}>
           <TouchableOpacity
             style={[styles.controlButton, styles.nextButton]}
-            onPress={async () => {
-              await playRandomTone();
-            }}
+            onPress={playRandomTone}
             disabled={isPlaying}
           >
             <Ionicons
@@ -477,10 +333,8 @@ const TrainingPlay = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.controlButton, styles.playButton]}
-            onPress={async () => {
-              await playTone(currentTone);
-            }}
-            disabled={isPlaying}
+            onPress={() => playTone(currentTone)}
+            disabled={isPlaying || !currentTone}
           >
             <Ionicons
               name="refresh"
@@ -490,12 +344,9 @@ const TrainingPlay = () => {
             />
             <Text style={styles.controlButtonText}>{levelLabels.repeat}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.controlButton, styles.repeatButton]}
-            onPress={async () => {
-              await playMaqam();
-            }}
+            onPress={playMaqam}
             disabled={isPlaying}
           >
             <Ionicons
@@ -514,6 +365,7 @@ const TrainingPlay = () => {
   );
 };
 
+// --- Styles remain unchanged ---
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,

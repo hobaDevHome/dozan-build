@@ -1,34 +1,16 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  Switch,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { RouteProp, useFocusEffect, useRoute } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   scalesLists,
   soundFolders,
   keysMap,
   tonesLables,
-  maqamsSoundFolders,
 } from "@/constants/scales";
 import { useSettings } from "@/context/SettingsContext";
-import { Asset } from "expo-asset";
-
 import { Audio } from "expo-av";
-import MaqamTrainingScreen from "../maqamat";
 import { Ionicons } from "@expo/vector-icons";
 
-type PlayScreenParams = {
-  id: string;
-  scale: string;
-  levelChoices: string[];
-  label: string;
-};
 type Maqam =
   | "Rast"
   | "Bayaty"
@@ -38,32 +20,27 @@ type Maqam =
   | "Sika"
   | "Hegaz"
   | "Kurd";
+
 const TrainingListen = () => {
-  const { state, dispatch } = useSettings();
+  const { state } = useSettings();
   const { id, scale, levelChoices, label } = state.trainingParams || {};
 
-  const [currentTone, setCurrentTone] = useState<string>("");
-
+  // **إعادة متغير الحالة المحلي كما كان**
   const [playChords, setPlayChords] = useState<boolean>(true);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-
   const [buttonColors, setButtonColors] = useState<{
     [key: string]: "green" | "red" | null;
   }>({});
 
-  // في بداية الكومبوننت بعد تعريف المتغيرات
+  const soundRef = useRef<Audio.Sound | null>(null);
   const levelChoicesRef = useRef(levelChoices);
+  const backToTonicRef = useRef(state.backToTonic);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
     levelChoicesRef.current = levelChoices;
-  }, [levelChoices]);
+    backToTonicRef.current = state.backToTonic;
+  }, [levelChoices, state.backToTonic]);
 
-  // في كل مكان تستخدم فيه levelChoices استبدلها بـ levelChoicesRef.current
-
-  const navigation = useNavigation();
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const cancelled = useRef(false);
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const cadence = scalesLists[selectedScale as Maqam];
   let keyLables = cadence.map((key) => {
@@ -74,93 +51,39 @@ const TrainingListen = () => {
     }
     return keyName2;
   });
-
   let currentKeyMap = tonesLables[state.toneLabel as keyof typeof tonesLables];
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      cancelled.current = true;
-
-      if (soundRef.current) {
-        soundRef.current.stopAsync();
-        soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
-      setButtonColors({});
-      setIsPlaying(false);
-      setCurrentTone("");
-
-      if (soundRef.current) {
-        try {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
-          soundRef.current = null;
-        } catch (error) {
-          console.log("Error stopping/unloading soundRef:", error);
-        }
-      }
-      if (soundRef.current) {
-        try {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
-          soundRef.current = null;
-        } catch (error) {
-          console.log("Error stopping/unloading currentSoundObject:", error);
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation, soundRef.current]);
-  // play ranodm note on page load
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
+  useFocusEffect(
+    useCallback(() => {
       playRandomTone();
-    });
+      return () => {
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
+        }
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      };
+    }, [])
+  );
 
-    return unsubscribe;
-  }, [navigation]);
+  const addTimer = (timer: NodeJS.Timeout) => {
+    timersRef.current.push(timer);
+  };
 
-  const backToTonicRef = useRef(state.backToTonic);
-
-  useEffect(() => {
-    backToTonicRef.current = state.backToTonic;
-  }, [state.backToTonic]);
-  /////////// play tone function ///////////////////////
   const playTone = async (
     note: string,
     duration: number = 1000
   ): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-      if (cancelled.current) return resolve();
-
+    return new Promise(async (resolve) => {
       try {
-        if (soundRef.current) {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
-          soundRef.current = null;
-        }
-
         const soundName = note.toLowerCase();
         const folder = soundFolders[state.instrument];
-
-        if (!folder) {
-          console.error(`Instrument "${state.instrument}" not found.`);
-          return resolve();
-        }
+        if (!folder) return resolve();
 
         const soundModule = folder(`./${soundName}.mp3`);
-        if (!soundModule) {
-          console.error(`Sound module not found for ${soundName}.mp3`);
-          return resolve();
-        }
+        if (!soundModule) return resolve();
 
         const { sound: soundObject } = await Audio.Sound.createAsync(
           soundModule
@@ -168,173 +91,79 @@ const TrainingListen = () => {
         soundRef.current = soundObject;
         await soundObject.playAsync();
 
-        // فقط لو مش "cords" نوقفه بعد مدة
-        if (soundName !== "cords" || duration < 1000) {
-          setTimeout(async () => {
-            try {
-              await soundObject.stopAsync();
-              await soundObject.unloadAsync();
-              soundRef.current = null;
-            } catch (error) {
-              console.warn("Error during forced stop:", error);
-            }
+        const onPlaybackStatusUpdate = async (status: any) => {
+          if (status.isLoaded && status.didJustFinish) {
+            soundObject.setOnPlaybackStatusUpdate(null);
+            await soundObject.unloadAsync().catch(() => {});
             resolve();
-          }, duration);
-        } else {
-          // نستنى لحد ما الصوت يخلص طبيعي
-          soundObject.setOnPlaybackStatusUpdate(async (status) => {
-            if (status && status.isLoaded) {
-              if (status?.didJustFinish) {
-                await soundObject.unloadAsync();
-                soundRef.current = null;
-                resolve();
-              }
-            }
-          });
-        }
+          }
+        };
+        soundObject.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
       } catch (error) {
-        console.error(`Error playing sound ${note}:`, error);
-        reject(error);
+        resolve();
       }
     });
   };
-  //////////////// play playRandomTone function ///////////////////////
 
   const playRandomTone = async () => {
-    if (cancelled.current) return;
-    if (isPlaying) return;
+    if (!levelChoicesRef.current || levelChoicesRef.current.length === 0)
+      return;
 
-    if (soundRef.current) {
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
-      soundRef.current = null;
-    }
-
-    setIsPlaying(true);
-
+    // **استخدام متغير الحالة المحلي playChords كما كان في الأصل**
     if (playChords) {
-      await playTone("cords"); // Play the "cords" sound();
-      await new Promise((r) => setTimeout(r, 500)); // Wait 500ms
+      await playTone("cords");
     }
 
     const randomTone =
       levelChoicesRef.current[
         Math.floor(Math.random() * levelChoicesRef.current.length)
       ];
-    setCurrentTone(randomTone);
-    console.log("Random tone: ", randomTone);
-
-    const soundName = randomTone.toLocaleLowerCase();
-    const folder = soundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      setIsPlaying(false);
-      return;
-    }
 
     try {
-      // --- بداية التغيير ---
-      const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        setIsPlaying(false);
-        return;
-      }
-
-      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      soundRef.current = soundObject;
-      await soundObject.playAsync();
-
-      soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
-            soundRef.current = null;
-          }
-        }
-      });
-
-      setTimeout(() => {
-        handleGuess(randomTone);
-      }, 2000); // 2000ms = 2 seconds
+      await playTone(randomTone, 2000);
+      addTimer(setTimeout(() => handleGuess(randomTone), 500));
     } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
+      console.log("Error in playRandomTone loop:", error);
     }
-
-    setIsPlaying(false);
   };
 
-  const playPreviousNotes = async (fromIndex: number) => {
-    for (let i = fromIndex; i >= 0; i--) {
-      const tone = levelChoicesRef.current[i];
-      // Set the current tone button to green, clear others
+  const playNotesSequence = async (
+    startIndex: number,
+    direction: "up" | "down"
+  ) => {
+    const choices = levelChoicesRef.current;
+    const loopEnd = direction === "down" ? -1 : choices.length;
+    const step = direction === "down" ? -1 : 1;
+
+    for (let i = startIndex; i !== loopEnd; i += step) {
+      const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      const duration = i === 0 ? 1200 : i === fromIndex ? 700 : 400;
-      await playTone(tone, duration);
-      await new Promise((r) => setTimeout(r, 0)); // Small delay after sound
+      await playTone(tone, 400);
     }
-    // Clear all button colors at the end
     setButtonColors({});
   };
 
-  const playNextNotes = async (fromIndex: number) => {
-    for (let i = fromIndex; i < levelChoicesRef.current.length; i++) {
-      const tone = levelChoicesRef.current[i];
-      // Set the current tone button to green, clear others
-      setButtonColors({ [tone]: "green" });
-
-      const duration =
-        i === levelChoicesRef.current.length - 1
-          ? 1200
-          : i === fromIndex
-          ? 700
-          : 400;
-
-      await playTone(tone, duration);
-
-      await new Promise((r) => setTimeout(r, 0)); // Small delay after sound
-    }
-    // Clear all button colors at the end
-    setButtonColors({});
-  };
   const handleGuess = async (guess: string) => {
-    setButtonColors((prev) => ({
-      ...prev,
-      [guess]: "green",
-    }));
+    setButtonColors({ [guess]: "green" });
+    addTimer(setTimeout(() => setButtonColors({}), 500));
 
-    setTimeout(() => {
-      setButtonColors({});
-    }, 500);
-    // Find the index of the guessed note in currentCadence
     const guessedIndex = levelChoicesRef.current.indexOf(guess);
-
-    // Play guessed note and all previous notes if not the first note
-    console.log("state.backToTonic in handle guess", state.backToTonic);
 
     if (backToTonicRef.current) {
       if (label === "section3") {
-        if (guessedIndex <= 3) {
-          await playPreviousNotes(guessedIndex);
-        } else {
-          await playNextNotes(guessedIndex);
-        }
+        await playNotesSequence(
+          guessedIndex,
+          guessedIndex <= 3 ? "down" : "up"
+        );
       } else if (label === "section1") {
-        await playPreviousNotes(guessedIndex);
+        await playNotesSequence(guessedIndex, "down");
       } else {
-        await playNextNotes(guessedIndex);
+        await playNotesSequence(guessedIndex, "up");
       }
-    } else {
-      await playTone(guess);
     }
-    if (!cancelled.current) {
-      setTimeout(() => {
-        playRandomTone();
-      }, 500);
-    }
+
+    addTimer(setTimeout(playRandomTone, 500));
   };
-  console.log("TrainingListen rendered, backToTonic:", state.backToTonic);
 
   return (
     <View style={styles.mainContainer}>
@@ -346,7 +175,6 @@ const TrainingListen = () => {
             color="#45b7d1"
             style={{ marginBottom: 5 }}
           />
-
           <Text style={styles.activitySubtitle}>
             {state.labels.basicTrainingPages.basicTrainingLevel.listenMsg}
           </Text>
@@ -357,11 +185,10 @@ const TrainingListen = () => {
               <View
                 style={[
                   styles.toneButtonTextBox,
-                  !levelChoicesRef.current.includes(tone)
+                  !levelChoicesRef.current?.includes(tone)
                     ? styles.dimmed
                     : null,
                   buttonColors[tone] === "green" && styles.correctButton,
-                  buttonColors[tone] === "red" && styles.incorrectButton,
                 ]}
               >
                 <Text style={styles.toneButtonText}>
@@ -373,10 +200,6 @@ const TrainingListen = () => {
             </TouchableOpacity>
           ))}
         </View>
-
-        <Text style={styles.feedbackText}>
-          {state.labels.basicTrainingPages.basicTrainingLevel.listenMsg}
-        </Text>
       </View>
     </View>
   );
@@ -390,87 +213,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAFAFA",
     padding: 10,
   },
-  scoreContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    padding: 10,
-  },
   leveContainer: {
-    //   justifyContent: "center",
     alignItems: "center",
     flex: 1,
     padding: 10,
-  },
-  questionNumber: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  score: {
-    fontSize: 18,
-    marginBottom: 20,
   },
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-  },
-
-  playButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "70%",
-    paddingHorizontal: 10,
-    flexWrap: "wrap",
-  },
-  repeatButton: {
-    backgroundColor: "#1bbc9b",
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  playButton: {
-    backgroundColor: "#e35f33",
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  pickerContainer: {
-    width: "100%",
-    alignItems: "center",
-    borderRadius: 10, // Rounded corners
-    overflow: "hidden", // Ensure rounded corners work
-    padding: 10,
-  },
-  picker: {
-    height: 50, // Set a fixed height
-    color: "#333", // Text color
-    fontSize: 16, // Font size
-    width: "70%",
-    overflow: "hidden",
-  },
-  pickerItem: {
-    fontSize: 16, // Font size for dropdown items
-    color: "#333", // Text color for dropdown items
-    width: "100%",
-    margin: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-    textTransform: "uppercase",
-  },
-  feedbackText: {
-    marginTop: 10,
-    fontSize: 18,
-    textAlign: "center",
-    color: "#333",
   },
   toneButton: {
     backgroundColor: "#ffffff",
@@ -502,26 +253,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   toneButtonText: {
-    // marginTop: 100,
     fontSize: 14,
     textAlign: "center",
     color: "#fff",
   },
-  switchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 12,
-  },
-  label: {
-    marginRight: 10,
-    marginLeft: 10,
-    fontSize: 16,
-  },
   correctButton: {
     backgroundColor: "green",
-  },
-  incorrectButton: {
-    backgroundColor: "red",
   },
   intro: {
     padding: 20,
@@ -529,22 +266,13 @@ const styles = StyleSheet.create({
     height: 180,
     marginBottom: 70,
     marginTop: 20,
-
     justifyContent: "center",
     alignItems: "center",
-
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
-  },
-  activityTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333333",
-    textAlign: "center",
-    marginBottom: 4,
   },
   activitySubtitle: {
     fontSize: 14,

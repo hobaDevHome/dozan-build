@@ -1,11 +1,7 @@
-import OptionButton from "@/components/Buttons/OptionButton";
-import { useNavigation } from "@react-navigation/native";
 import OptionButton2 from "@/components/Buttons/OptionButton2";
-import PlayButton from "@/components/Buttons/PlayButton";
-import RepeatButton from "@/components/Buttons/RepeatButton";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../context/SettingsContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   scalesLists,
   maqamsSoundFolders,
@@ -15,7 +11,6 @@ import {
   Maqam,
 } from "@/constants/scales";
 import { useFocusEffect } from "@react-navigation/native";
-
 import { Audio } from "expo-av";
 import {
   View,
@@ -24,22 +19,12 @@ import {
   Modal,
   StyleSheet,
   TouchableWithoutFeedback,
-  ImageBackground,
-  Image,
-  Platform,
   ScrollView,
   SafeAreaView,
 } from "react-native";
 
-import { Asset } from "expo-asset";
-import IntroGame from "./BasicTraining";
-
-const instrumentImages: { [key: string]: any } = {
-  piano: require("@/assets/images/piano.png"),
-  oud: require("@/assets/images/oud.png"),
-};
-
 const MaqamTrainingScreen = () => {
+  // --- المتغيرات الأصلية للمكون ---
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMaqams, setSelectedMaqams] = useState<string[]>(
     Object.keys(scalesLists)
@@ -53,43 +38,26 @@ const MaqamTrainingScreen = () => {
   );
   const [isAnswered, setIsAnswered] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
-
-  const [currentSoundObject, setCurrentSoundObject] =
-    useState<Audio.Sound | null>(null);
-
   const [isExamplePlaying, setIsExamplePlaying] = useState(false);
   const [showExampleControlButton, setShowExampleControlButton] =
     useState(false);
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(0);
 
-  const navigation = useNavigation();
+  const { state } = useSettings();
+  const lables = state.labels.maqamatTraingingPage;
+  const maqamsListFromLacale =
+    state.labels.basicTrainingPages.basicTrainingHome;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      playMaqam();
-    });
+  // --- Refs لإدارة الحالة بدون إعادة رندر ---
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
-    return unsubscribe;
-  }, [navigation]);
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", () => {
-      // Stop and unload sound when leaving the screen
-      if (currentSoundObject) {
-        currentSoundObject
-          .stopAsync()
-          .catch((error) => console.log("Error stopping sound:", error));
-        currentSoundObject
-          .unloadAsync()
-          .catch((error) => console.log("Error unloading sound:", error));
-      }
-    });
-
-    return unsubscribe; // Cleanup listener on unmount
-  }, [navigation, currentSoundObject]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
+  // ======================= الحل المركزي باستخدام useFocusEffect =======================
+  useFocusEffect(
+    useCallback(() => {
+      // هذا الكود يعمل عند الدخول إلى الشاشة
+      // إعادة ضبط الحالة بالكامل عند كل دخول جديد
       setIsPlaying(false);
       setCurrentMaqam(null);
       setUserSelection(null);
@@ -97,34 +65,138 @@ const MaqamTrainingScreen = () => {
       setShowAnswer(false);
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading soundRef:", error);
+      setFirstAttempt(true);
+      setShowExampleControlButton(false);
+
+      // بدء أول سؤال عند الدخول
+      playMaqam();
+
+      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      return () => {
+        // 1. إيقاف وتفريغ أي صوت يعمل حاليًا
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
         }
-      }
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading currentSoundObject:", error);
+        // 2. إلغاء جميع المؤقتات المعلقة
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      };
+    }, [selectedMaqams]) // إعادة تشغيل التأثير إذا تغيرت قائمة المقامات المختارة
+  );
+  // ======================= نهاية الحل =======================
+
+  const addTimer = (timer: NodeJS.Timeout) => {
+    timersRef.current.push(timer);
+  };
+
+  const playSound = async (folder: any, soundName: string | null) => {
+    if (!soundName) return;
+    setIsPlaying(true);
+
+    if (soundRef.current) {
+      await soundRef.current.stopAsync().catch(() => {});
+      await soundRef.current.unloadAsync().catch(() => {});
+    }
+
+    if (!folder) return setIsPlaying(false);
+
+    try {
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) return setIsPlaying(false);
+
+      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
+      soundRef.current = soundObject;
+      await soundObject.playAsync();
+
+      soundObject.setOnPlaybackStatusUpdate(async (status: any) => {
+        if (status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync().catch(() => {});
+          if (soundRef.current === soundObject) {
+            soundRef.current = null;
+          }
+          setIsPlaying(false);
         }
+      });
+    } catch (error) {
+      setIsPlaying(false);
+    }
+  };
+
+  const playMaqam = () => {
+    if (!selectedMaqams.length) return;
+
+    setIsExamplePlaying(false);
+    setShowExampleControlButton(false);
+    setUserSelection(null);
+    setFirstAttempt(true);
+    setQuestionNumber((prev) => prev + 1);
+    setShowAnswer(false);
+    setIsAnswered(false);
+
+    const randomMaqam =
+      selectedMaqams[Math.floor(Math.random() * selectedMaqams.length)];
+    setCurrentMaqam(randomMaqam);
+
+    const randomMaqamList = maqamsScaleLists[randomMaqam as Maqam];
+    const randomSound =
+      randomMaqamList[Math.floor(Math.random() * randomMaqamList.length)];
+    setCurrentMaqamSound(randomSound);
+
+    playSound(maqamsSoundFolders[state.instrument], randomSound);
+  };
+
+  const playExample = () => {
+    if (!currentMaqam) return;
+
+    const currentExamplesList = maqamsExamplesLists[currentMaqam as Maqam];
+    const randomExample =
+      currentExamplesList[
+        Math.floor(Math.random() * currentExamplesList.length)
+      ];
+
+    setShowExampleControlButton(true);
+    playSound(examplesSoundFolders[state.instrument], randomExample);
+  };
+
+  const repeatMaqam = () => {
+    if (currentMaqamSound) {
+      playSound(maqamsSoundFolders[state.instrument], currentMaqamSound);
+    }
+  };
+
+  const handleSelection = (maqam: string) => {
+    if (isAnswered) return;
+
+    setUserSelection(maqam);
+
+    if (maqam === currentMaqam) {
+      if (firstAttempt) {
+        setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
-    });
+      setIsAnswered(true);
+      setShowAnswer(true);
 
-    return unsubscribe;
-  }, [navigation, currentSoundObject]);
+      if (state.autoQuestionJump) {
+        const timer = setTimeout(playMaqam, 2000);
+        addTimer(timer);
+      }
+    } else {
+      if (firstAttempt) {
+        setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
+      }
+      setFirstAttempt(false);
+    }
+  };
 
-  const { state, dispatch } = useSettings();
+  const toggleMaqam = (maqam: string) => {
+    setSelectedMaqams((prev) =>
+      prev.includes(maqam) ? prev.filter((m) => m !== maqam) : [...prev, maqam]
+    );
+  };
 
-  const lables = state.labels.maqamatTraingingPage;
-  const maqamsListFromLacale =
-    state.labels.basicTrainingPages.basicTrainingHome;
+  const toggleModal = () => setModalVisible(!modalVisible);
 
   const maqamMap: Record<Maqam, string> = {
     Rast: "راست",
@@ -137,261 +209,9 @@ const MaqamTrainingScreen = () => {
     Kurd: "كرد",
   };
 
-  const playMaqam = async () => {
-    setIsExamplePlaying(false);
-    setShowExampleControlButton(false);
-    setUserSelection(null);
-
-    setFirstAttempt(true);
-
-    setQuestionNumber((prev) => prev + 1);
-    if (!selectedMaqams.length) return;
-    setShowAnswer(false);
-
-    // 🛑 Stop and unload any currently playing sound
-    if (currentSoundObject !== null) {
-      console.log("there is currently playing");
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
-    }
-
-    // Set the new Maqam
-    const randomMaqam =
-      selectedMaqams[Math.floor(Math.random() * selectedMaqams.length)];
-    setCurrentMaqam(randomMaqam);
-
-    const randomMaqamList = maqamsScaleLists[randomMaqam as Maqam];
-
-    const randomMaqamSound =
-      randomMaqamList[Math.floor(Math.random() * randomMaqamList.length)];
-    console.log("randomMaqamSound:", randomMaqamSound);
-
-    setCurrentMaqamSound(randomMaqamSound);
-
-    const soundName = randomMaqamSound;
-    const folder = maqamsSoundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      return;
-    }
-
-    try {
-      const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
-
-      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      setCurrentSoundObject(soundObject);
-
-      await soundObject.playAsync();
-
-      soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
-          }
-        }
-      });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
-
-    setIsAnswered(false);
-    setUserSelection(null);
-  };
-
-  const playExample = async () => {
-    if (!selectedMaqams.length) return;
-    if (!currentMaqam) return;
-
-    // 🛑 Stop and unload any currently playing sound
-    if (currentSoundObject !== null) {
-      console.log("there is currently playing");
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
-    }
-
-    // the current maqam is const currentmaqam
-
-    const currentExamplesList = maqamsExamplesLists[currentMaqam as Maqam];
-
-    // choose a random example
-
-    const currentExampleSound =
-      currentExamplesList[
-        Math.floor(Math.random() * currentExamplesList.length)
-      ];
-
-    //////////
-    // // or get the example with the same index as currentMaqamSound
-    let currentMaqamSoundIndex = currentMaqamSound?.split("_")[1];
-    // const currentExampleSound =
-    //   currentExamplesList[currentMaqamSoundIndex];
-    // console.log("currentExampleSound", currentExampleSound);
-
-    const soundName = currentExampleSound;
-    const folder = examplesSoundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      return;
-    }
-
-    try {
-      const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
-
-      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      setCurrentSoundObject(soundObject);
-      await soundObject.playAsync();
-
-      setIsExamplePlaying(true);
-      setShowExampleControlButton(true);
-
-      soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
-            setIsExamplePlaying(false);
-            setShowExampleControlButton(false);
-          }
-        }
-      });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-      setIsExamplePlaying(false);
-      setShowExampleControlButton(false);
-    }
-  };
-
-  // Function to toggle play/pause for the example sound
-  const toggleExamplePlayback = async () => {
-    if (!currentSoundObject) return;
-
-    try {
-      const status = await currentSoundObject.getStatusAsync();
-      if (status.isLoaded) {
-        if (status.isPlaying) {
-          await currentSoundObject.pauseAsync();
-          setIsExamplePlaying(false);
-        } else {
-          await currentSoundObject.playAsync();
-          setIsExamplePlaying(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error toggling example playback:", error);
-    }
-  };
-  // Handle user selection
-  const handleSelection = (maqam: string) => {
-    if (!isAnswered) {
-      setFirstAttempt(false);
-      setUserSelection(maqam);
-      // update the score state accrordingly;
-      if (maqam === currentMaqam) {
-        if (firstAttempt) {
-          setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
-        }
-        setIsAnswered(true);
-        setShowAnswer(true);
-
-        if (state.autoQuestionJump) {
-          setTimeout(() => {
-            playMaqam();
-          }, 1000);
-        }
-      } else {
-        if (firstAttempt) {
-          setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
-        }
-      }
-    }
-  };
-
-  // Toggle Maqam selection
-  const toggleMaqam = (maqam: string) => {
-    setSelectedMaqams((prev) =>
-      prev.includes(maqam) ? prev.filter((m) => m !== maqam) : [...prev, maqam]
-    );
-  };
-
-  // Toggle the settings modal
-  const toggleModal = () => setModalVisible(!modalVisible);
-
-  const repeatMaqam = async () => {
-    if (!selectedMaqams.length) return;
-    // if (isAnswered) return;
-
-    if (currentSoundObject !== null) {
-      console.log("there is currently playing");
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
-    }
-
-    if (!currentMaqam) return;
-
-    const soundName = currentMaqamSound;
-    const folder = maqamsSoundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      return;
-    }
-
-    try {
-      const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
-
-      const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      setCurrentSoundObject(soundObject);
-      await soundObject.playAsync();
-
-      soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded) {
-          if (status.didJustFinish) {
-            await soundObject.unloadAsync();
-          }
-        }
-      });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
-
-    // setIsAnswered(false);
-    // setUserSelection(null);
-  };
-  console.log("currentMaqams:", maqamsListFromLacale["Bayaty"]);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* <Text style={styles.title}>{lables.title}</Text> */}
-
-        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -402,17 +222,15 @@ const MaqamTrainingScreen = () => {
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.incorrect}</Text>
             <Text style={styles.statLabel}>
-              {" "}
               {state.labels.introGamePage.levelPage.incorrect}
             </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{questionNumber}</Text>
-            <Text style={styles.statLabel}> {state.labels.questionNo}</Text>
+            <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
           </View>
         </View>
 
-        {/* Control Buttons */}
         <View style={styles.controlsContainer}>
           <TouchableOpacity
             style={[styles.controlButton, styles.playButton]}
@@ -426,7 +244,6 @@ const MaqamTrainingScreen = () => {
             />
             <Text style={styles.controlButtonText}>{lables.playMaqam}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.controlButton, styles.repeatButton]}
             onPress={repeatMaqam}
@@ -438,18 +255,6 @@ const MaqamTrainingScreen = () => {
         </View>
 
         <View style={styles.exampleButtonsView}>
-          {showExampleControlButton && (
-            <TouchableOpacity
-              onPress={toggleExamplePlayback}
-              style={styles.exampleControlButton}
-            >
-              <Ionicons
-                name={isExamplePlaying ? "pause" : "play"}
-                size={24}
-                color="#5c3829"
-              />
-            </TouchableOpacity>
-          )}
           <TouchableOpacity
             style={[styles.controlButton, styles.nextButton]}
             onPress={playExample}
@@ -460,41 +265,39 @@ const MaqamTrainingScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Maqam Selection Buttons */}
-
         <View style={styles.maqamatContainer}>
           <View style={styles.maqamatGrid}>
-            {selectedMaqams.map((maqam) => {
-              return (
-                <TouchableOpacity
-                  key={maqam}
-                  style={[
-                    styles.maqamButton,
-                    userSelection === maqam &&
-                      (maqam === currentMaqam
-                        ? styles.maqamButtonCorrect
-                        : styles.maqamButtonWrong),
-                  ]}
-                  onPress={() => handleSelection(maqam)}
-                  disabled={isAnswered}
-                >
-                  <Text style={styles.maqamName}>
-                    {state.language === "en"
-                      ? maqam
-                      : maqamsListFromLacale[maqam as Maqam]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {Object.keys(scalesLists).map((maqam) => (
+              <TouchableOpacity
+                key={maqam}
+                style={[
+                  styles.maqamButton,
+                  !selectedMaqams.includes(maqam) && styles.disabledButton,
+                  userSelection === maqam &&
+                    (maqam === currentMaqam
+                      ? styles.maqamButtonCorrect
+                      : styles.maqamButtonWrong),
+                  showAnswer &&
+                    maqam === currentMaqam &&
+                    styles.maqamButtonCorrect,
+                ]}
+                onPress={() => handleSelection(maqam)}
+                disabled={isAnswered || !selectedMaqams.includes(maqam)}
+              >
+                <Text style={styles.maqamName}>
+                  {state.language === "en"
+                    ? maqam
+                    : maqamsListFromLacale[maqam as Maqam]}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
-
-        {/* Settings Button */}
 
         <View style={styles.settingsBtCont}>
           <TouchableOpacity
             style={[styles.controlButton, styles.settingsButtonBG]}
-            onPress={() => setModalVisible(true)}
+            onPress={toggleModal}
           >
             <View style={styles.settingsBtnContainer}>
               <Ionicons
@@ -508,15 +311,12 @@ const MaqamTrainingScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Modal for Settings */}
         <Modal visible={modalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={toggleModal}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>{lables.maqamtSettings}</Text>
                 <Text style={styles.chooseText}>{lables.chooseMaqam}</Text>
-
-                {/* Maqam Selector */}
                 <View style={styles.maqamSelectionContainer}>
                   {Object.keys(scalesLists).map((maqam) => (
                     <OptionButton2
@@ -525,17 +325,16 @@ const MaqamTrainingScreen = () => {
                       interval={maqam}
                       toggleInterval={toggleMaqam}
                       label={
-                        state.language == "en"
+                        state.language === "en"
                           ? maqam
                           : maqamMap[maqam as Maqam]
                       }
                     />
                   ))}
                 </View>
-
                 <TouchableOpacity
                   style={styles.closeButton}
-                  onPress={() => setModalVisible(false)}
+                  onPress={toggleModal}
                 >
                   <AntDesign
                     name="close"
@@ -553,7 +352,7 @@ const MaqamTrainingScreen = () => {
   );
 };
 
-// Styles
+// --- Styles remain unchanged ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -604,7 +403,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
-    maxWidth: Platform.OS === "web" ? 400 : "100%",
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -845,6 +643,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 8,
+  },
+  disabledButton: {
+    backgroundColor: "#f0f0f0",
+    opacity: 0.6,
   },
 });
 

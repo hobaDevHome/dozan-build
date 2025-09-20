@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,30 +6,16 @@ import {
   Modal,
   StyleSheet,
   TouchableWithoutFeedback,
-  ImageBackground,
-  Image,
-  Platform,
   SafeAreaView,
+  ScrollView,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-
+import { useFocusEffect } from "@react-navigation/native"; // استيراد useFocusEffect
 import { useSettings } from "../context/SettingsContext";
-
-import PlayButton from "@/components/Buttons/PlayButton";
-import RepeatButton from "@/components/Buttons/RepeatButton";
-import OptionButton from "@/components/Buttons/OptionButton";
-import OptionButton2 from "@/components/Buttons/OptionButton2";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { Asset } from "expo-asset";
 import { Audio } from "expo-av";
 import { soundFolders } from "@/constants/scales";
-import { ScrollView } from "react-native-gesture-handler";
-import { useFocusEffect } from "expo-router";
+import OptionButton2 from "@/components/Buttons/OptionButton2";
 
-const instrumentImages: { [key: string]: any } = {
-  piano: require("@/assets/images/piano.png"),
-  oud: require("@/assets/images/oud.png"),
-};
 const intervalSteps: Record<string, string[]> = {
   "Unison": ["re", "re"],
   "Minor Second": ["re", "mi_b"],
@@ -38,9 +24,10 @@ const intervalSteps: Record<string, string[]> = {
   "Minor Third": ["re", "fa"],
   "Octave": ["re", "ree"],
 };
-const IntervalTrainingScreen = () => {
-  const [modalVisible, setModalVisible] = useState(false);
 
+const IntervalTrainingScreen = () => {
+  // --- المتغيرات الأصلية للمكون ---
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedIntervals, setSelectedIntervals] = useState<string[]>(
     Object.keys(intervalSteps)
   );
@@ -50,34 +37,21 @@ const IntervalTrainingScreen = () => {
   const [isAnswered, setIsAnswered] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
   const [score, setScore] = useState({ correct: 0, incorrect: 0 });
-  const [currentSoundObject, setCurrentSoundObject] =
-    useState<Audio.Sound | null>(null);
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(0);
-  const { state, dispatch } = useSettings();
-  const navigation = useNavigation();
+
+  const { state } = useSettings();
   const lables = state.labels.intervalsTraingingPage;
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
-      if (currentSoundObject) {
-        try {
-          const status = await currentSoundObject.getStatusAsync();
-          if (status.isLoaded) {
-            await currentSoundObject.stopAsync();
-            await currentSoundObject.unloadAsync();
-          }
-        } catch (error) {
-          console.log("Error handling sound cleanup:", error);
-        }
-      }
-    });
+  // --- Refs لإدارة الحالة بدون إعادة رندر ---
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
-    return unsubscribe;
-  }, [navigation, currentSoundObject]);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
+  // ======================= الحل المركزي باستخدام useFocusEffect =======================
+  useFocusEffect(
+    useCallback(() => {
+      // هذا الكود يعمل عند الدخول إلى الشاشة
+      // إعادة ضبط الحالة بالكامل عند كل دخول جديد
       setIsPlaying(false);
       setCurrentInterval(null);
       setUserSelection(null);
@@ -85,197 +59,114 @@ const IntervalTrainingScreen = () => {
       setShowAnswer(false);
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading soundRef:", error);
-        }
-      }
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading currentSoundObject:", error);
-        }
-      }
-    });
 
-    return unsubscribe;
-  }, [navigation, currentSoundObject]);
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
+      // بدء أول سؤال عند الدخول
       playInterval();
-    });
 
-    return unsubscribe;
-  }, [navigation]);
+      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      return () => {
+        // 1. إيقاف وتفريغ أي صوت يعمل حاليًا
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
+        }
+        // 2. إلغاء جميع المؤقتات المعلقة
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      };
+    }, [selectedIntervals]) // إعادة تشغيل التأثير إذا تغيرت قائمة الفواصل المختارة
+  );
+  // ======================= نهاية الحل =======================
 
-  // ----------- تم التعديل هنا -----------
-  const playInterval = async () => {
+  const addTimer = (timer: NodeJS.Timeout) => {
+    timersRef.current.push(timer);
+  };
+
+  const playSoundSequence = async (notes: string[]) => {
+    setIsPlaying(true);
+    for (const note of notes) {
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => {});
+        await soundRef.current.unloadAsync().catch(() => {});
+      }
+      const folder = soundFolders[state.instrument];
+      if (!folder) continue;
+
+      try {
+        const soundModule = folder(`./${note}.mp3`);
+        if (!soundModule) continue;
+
+        const { sound: soundObject } = await Audio.Sound.createAsync(
+          soundModule
+        );
+        soundRef.current = soundObject;
+        await soundObject.playAsync();
+
+        await new Promise<void>((resolve) => {
+          const timer = setTimeout(() => {
+            soundObject.stopAsync().catch(() => {});
+            soundObject.unloadAsync().catch(() => {});
+            resolve();
+          }, 500);
+          addTimer(timer);
+        });
+      } catch (error) {}
+    }
+    setIsPlaying(false);
+  };
+
+  const playInterval = () => {
+    if (!selectedIntervals.length) return;
+
     setFirstAttempt(true);
     setQuestionNumber((prev) => prev + 1);
-    if (!selectedIntervals.length) return;
-    console.log("in play intervla");
     setShowAnswer(false);
-    if (currentSoundObject !== null) {
-      console.log("there is currently playing");
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
-    }
-    const randomInterval =
-      selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
-
-    setCurrentInterval(randomInterval);
-    const currenInt = intervalSteps[randomInterval];
-
-    let currentIndex = 0;
-
-    const playNextSound = async () => {
-      if (currentIndex >= currenInt.length) {
-        return;
-      }
-
-      const soundName = currenInt[currentIndex];
-      const folder = soundFolders[state.instrument];
-
-      if (!folder) {
-        console.error(`Instrument "${state.instrument}" not found.`);
-        return;
-      }
-
-      try {
-        // --- بداية التغيير ---
-        const soundModule = folder(`./${soundName}.mp3`);
-        if (!soundModule) {
-          console.error(`Sound module not found for ${soundName}.mp3`);
-          currentIndex++;
-          playNextSound();
-          return;
-        }
-
-        const { sound: soundObject } = await Audio.Sound.createAsync(
-          soundModule
-        );
-        setCurrentSoundObject(soundObject);
-        await soundObject.playAsync();
-
-        setTimeout(async () => {
-          try {
-            await soundObject.stopAsync();
-            await soundObject.unloadAsync();
-            currentIndex++;
-            playNextSound();
-          } catch (err) {
-            console.error("Error stopping/unloading:", err);
-          }
-        }, 500);
-      } catch (error) {
-        console.error(`Error playing sound ${soundName}:`, error);
-      }
-    };
-
-    playNextSound();
     setIsAnswered(false);
     setUserSelection(null);
-  };
-  // ----------- نهاية التعديل -----------
 
-  // ----------- تم التعديل هنا -----------
-  const playSpecificInterval = async (intervalName: string) => {
-    if (currentSoundObject) {
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-        setCurrentSoundObject(null);
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
+    const randomInterval =
+      selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
+    setCurrentInterval(randomInterval);
+
+    const notesToPlay = intervalSteps[randomInterval];
+    playSoundSequence(notesToPlay);
+  };
+
+  const playSpecificInterval = (intervalName: string) => {
+    const notesToPlay = intervalSteps[intervalName];
+    playSoundSequence(notesToPlay);
+  };
+
+  const repeatInterval = () => {
+    if (currentInterval) {
+      const notesToPlay = intervalSteps[currentInterval];
+      playSoundSequence(notesToPlay);
     }
-
-    const currenInt = intervalSteps[intervalName];
-    let currentIndex = 0;
-
-    const playNextSound = async () => {
-      if (currentIndex >= currenInt.length) {
-        return;
-      }
-
-      const soundName = currenInt[currentIndex];
-      const folder = soundFolders[state.instrument];
-
-      if (!folder) {
-        console.error(`Instrument "${state.instrument}" not found.`);
-        return;
-      }
-
-      try {
-        const soundModule = folder(`./${soundName}.mp3`);
-        if (!soundModule) {
-          console.error(`Sound module not found for ${soundName}.mp3`);
-          currentIndex++;
-          playNextSound();
-          return;
-        }
-
-        const { sound: soundObject } = await Audio.Sound.createAsync(
-          soundModule
-        );
-        setCurrentSoundObject(soundObject);
-        await soundObject.playAsync();
-
-        setTimeout(async () => {
-          try {
-            await soundObject.stopAsync();
-            await soundObject.unloadAsync();
-            currentIndex++;
-            playNextSound();
-          } catch (err) {
-            console.error("Error stopping/unloading:", err);
-          }
-        }, 500);
-      } catch (error) {
-        console.error(`Error playing sound ${soundName}:`, error);
-      }
-    };
-
-    playNextSound();
   };
-  // ----------- نهاية التعديل -----------
 
   const handleSelection = (interval: string) => {
+    if (isAnswered) return;
+
     playSpecificInterval(interval);
-    if (!isAnswered) {
-      setUserSelection(interval);
-      setFirstAttempt(false);
-      // update the score state accrordingly;
+    setUserSelection(interval);
 
-      if (interval === currentInterval) {
-        if (firstAttempt) {
-          setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
-        }
-        // setIsAnswered(true);
-        setShowAnswer(true);
-
-        if (state.autoQuestionJump) {
-          setTimeout(() => {
-            playInterval();
-          }, 3500);
-        }
-      } else {
-        if (firstAttempt) {
-          setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
-        }
+    if (interval === currentInterval) {
+      if (firstAttempt) {
+        setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
+      setShowAnswer(true);
+      setIsAnswered(true); // منع المزيد من التخمينات
+
+      if (state.autoQuestionJump) {
+        const timer = setTimeout(playInterval, 3500);
+        addTimer(timer);
+      }
+    } else {
+      if (firstAttempt) {
+        setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
+      }
+      setFirstAttempt(false); // السماح بمحاولة أخرى
     }
   };
 
@@ -291,85 +182,9 @@ const IntervalTrainingScreen = () => {
   const intervalsListFromLacale =
     state.labels.intervalsTraingingPage.intervalsNamesMap;
 
-  // ----------- تم التعديل هنا -----------
-  const repeatInterval = async () => {
-    if (!selectedIntervals.length) return;
-    if (currentSoundObject !== null) {
-      console.log("there is currently playing");
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
-    }
-    if (!currentInterval) return;
-
-    const currenInt = intervalSteps[currentInterval];
-
-    let currentIndex = 0;
-
-    const playNextSound = async () => {
-      if (currentIndex >= currenInt.length) {
-        return;
-      }
-
-      const soundName = currenInt[currentIndex];
-      console.log("playing", currenInt);
-      const folder = soundFolders[state.instrument];
-
-      if (!folder) {
-        console.error(`Instrument "${state.instrument}" not found.`);
-        return;
-      }
-
-      try {
-        const soundModule = folder(`./${soundName}.mp3`);
-        if (!soundModule) {
-          console.error(`Sound module not found for ${soundName}.mp3`);
-          currentIndex++;
-          playNextSound();
-          return;
-        }
-
-        const { sound: soundObject } = await Audio.Sound.createAsync(
-          soundModule
-        );
-        setCurrentSoundObject(soundObject);
-        await soundObject.playAsync();
-
-        setTimeout(async () => {
-          try {
-            await soundObject.stopAsync();
-            await soundObject.unloadAsync();
-            currentIndex++;
-            playNextSound();
-          } catch (err) {
-            console.error("Error stopping/unloading:", err);
-          }
-        }, 500);
-      } catch (error) {
-        console.error(`Error playing sound ${soundName}:`, error);
-      }
-    };
-
-    playNextSound();
-    setIsAnswered(false);
-    setUserSelection(null);
-  };
-  // ----------- نهاية التعديل -----------
-
-  const handlePlayInterval = () => {
-    playInterval();
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* <Text style={styles.title}>{lables.title}</Text> */}
-
-        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -380,21 +195,19 @@ const IntervalTrainingScreen = () => {
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.incorrect}</Text>
             <Text style={styles.statLabel}>
-              {" "}
               {state.labels.introGamePage.levelPage.incorrect}
             </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{questionNumber}</Text>
-            <Text style={styles.statLabel}> {state.labels.questionNo}</Text>
+            <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
           </View>
         </View>
 
-        {/* Control Buttons */}
         <View style={styles.controlsContainer}>
           <TouchableOpacity
             style={[styles.controlButton, styles.playButton]}
-            onPress={handlePlayInterval}
+            onPress={playInterval}
             disabled={isPlaying}
           >
             <Ionicons
@@ -404,7 +217,6 @@ const IntervalTrainingScreen = () => {
             />
             <Text style={styles.controlButtonText}>{lables.playInterval}</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.controlButton, styles.repeatButton]}
             onPress={repeatInterval}
@@ -415,43 +227,42 @@ const IntervalTrainingScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* intervlas Selection Buttons */}
-
         <View style={styles.maqamatContainer}>
           <View style={styles.maqamatGrid}>
-            {selectedIntervals.map((interval) => {
-              return (
-                <TouchableOpacity
-                  key={interval}
-                  style={[
-                    styles.maqamButton,
-                    userSelection === interval &&
-                      (interval === currentInterval
-                        ? styles.maqamButtonCorrect
-                        : styles.maqamButtonWrong),
-                  ]}
-                  onPress={() => handleSelection(interval)}
-                  disabled={isAnswered}
-                >
-                  <Text style={styles.maqamName}>
-                    {state.language === "en"
-                      ? interval
-                      : intervalsListFromLacale[
-                          interval as keyof typeof intervalsListFromLacale
-                        ]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {Object.keys(intervalSteps).map((interval) => (
+              <TouchableOpacity
+                key={interval}
+                style={[
+                  styles.maqamButton,
+                  !selectedIntervals.includes(interval) &&
+                    styles.disabledButton,
+                  userSelection === interval &&
+                    (interval === currentInterval
+                      ? styles.maqamButtonCorrect
+                      : styles.maqamButtonWrong),
+                  showAnswer &&
+                    interval === currentInterval &&
+                    styles.maqamButtonCorrect,
+                ]}
+                onPress={() => handleSelection(interval)}
+                disabled={isAnswered || !selectedIntervals.includes(interval)}
+              >
+                <Text style={styles.maqamName}>
+                  {state.language === "en"
+                    ? interval
+                    : intervalsListFromLacale[
+                        interval as keyof typeof intervalsListFromLacale
+                      ]}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
-
-        {/* Settings Button */}
 
         <View style={styles.settingsBtCont}>
           <TouchableOpacity
             style={[styles.controlButton, styles.settingsButtonBG]}
-            onPress={() => setModalVisible(true)}
+            onPress={toggleModal}
           >
             <View style={styles.settingsBtnContainer}>
               <Ionicons
@@ -465,7 +276,6 @@ const IntervalTrainingScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Modal for Settings */}
         <Modal visible={modalVisible} transparent animationType="slide">
           <TouchableWithoutFeedback onPress={toggleModal}>
             <View style={styles.modalContainer}>
@@ -474,7 +284,6 @@ const IntervalTrainingScreen = () => {
                   {lables.intervalsSettings}
                 </Text>
                 <Text style={styles.chooseText}>{lables.chooseIntervals}:</Text>
-
                 <View style={styles.intervalSelectionContainer}>
                   {Object.keys(intervalSteps).map((interval) => (
                     <OptionButton2
@@ -492,7 +301,7 @@ const IntervalTrainingScreen = () => {
                 </View>
                 <TouchableOpacity
                   style={styles.closeButton}
-                  onPress={() => setModalVisible(false)}
+                  onPress={toggleModal}
                 >
                   <AntDesign
                     name="close"
@@ -510,7 +319,7 @@ const IntervalTrainingScreen = () => {
   );
 };
 
-// Styles
+// --- Styles remain unchanged ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -620,7 +429,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
-    maxWidth: Platform.OS === "web" ? 400 : "100%",
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -786,6 +594,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 8,
+  },
+  disabledButton: {
+    backgroundColor: "#f0f0f0",
+    opacity: 0.6,
   },
 });
 

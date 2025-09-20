@@ -1,12 +1,11 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react"; // استيراد useRef
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-import { Asset } from "expo-asset";
 import { Audio } from "expo-av";
 import { useSettings } from "../context/SettingsContext";
 import { soundFolders } from "../constants/scales";
-import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native"; // استيراد useFocusEffect
 
-// Define the piano layout with toggle info for keys that support quarter tones
+// ... (pianoLayout remains the same)
 const pianoLayout = [
   {
     note: "do",
@@ -111,21 +110,9 @@ const pianoLayout = [
     labelAr: "دو",
     hasToggle: true,
     toggleKey: "doo",
-  }, // Higher octave Do
-  {
-    note: "ree_b",
-    type: "black",
-    label: "Re♭",
-    labelAr: "ري♭",
-    // hasToggle: true,
-    // toggleKey: "ree_b",
-  }, // Higher octave Re flat
-  {
-    note: "ree",
-    type: "white",
-    label: "Re",
-    labelAr: "ري",
-  }, // Higher octave Re
+  },
+  { note: "ree_b", type: "black", label: "Re♭", labelAr: "ري♭" },
+  { note: "ree", type: "white", label: "Re", labelAr: "ري" },
 ];
 
 type PlaygroundScreenProps = {
@@ -143,15 +130,34 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
   const [quarterToneToggles, setQuarterToneToggles] = useState<
     Record<string, boolean>
   >({});
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  // داخل كومبوننت PlaygroundScreen:
+  // --- إضافة Ref لتتبع الصوت الحالي ---
+  const soundRef = useRef<Audio.Sound | null>(null);
+
   useEffect(() => {
     if (initialQuarterToneToggles) {
       setQuarterToneToggles(initialQuarterToneToggles);
     }
   }, [initialQuarterToneToggles]);
 
-  const [containerWidth, setContainerWidth] = useState(0);
+  // ======================= إضافة دالة التنظيف =======================
+  useFocusEffect(
+    useCallback(() => {
+      // لا يوجد شيء لفعله عند الدخول، لأن المستخدم هو من يبدأ الصوت
+
+      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      return () => {
+        // إيقاف وتفريغ أي صوت قد يكون لا يزال يعمل
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
+        }
+      };
+    }, [])
+  );
+  // ======================= نهاية الإضافة =======================
 
   const handleLayout = useCallback(
     (event: any) => {
@@ -163,8 +169,13 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
     [containerWidth]
   );
 
-  // Play tone with quarter-tone support
   const playTone = async (note: string) => {
+    // إيقاف أي صوت سابق قبل تشغيل الجديد
+    if (soundRef.current) {
+      await soundRef.current.stopAsync().catch(() => {});
+      await soundRef.current.unloadAsync().catch(() => {});
+    }
+
     let soundName = note.toLowerCase();
     const folder = soundFolders[state.instrument];
 
@@ -177,32 +188,28 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
       soundName = `${note}_q`;
     }
 
-    // console.log(`Playing sound: ${soundName}.mp3`);
-    // pass the note to the parent if any
     if (onKeyPress) {
       onKeyPress(soundName);
     }
 
-    if (!folder) {
-      console.error(`Instrument "${state.instrument}" not found.`);
-      return;
-    }
+    if (!folder) return;
 
     try {
       const soundModule = folder(`./${soundName}.mp3`);
       const { sound } = await Audio.Sound.createAsync(soundModule);
+      soundRef.current = sound; // تخزين الصوت في الـ ref
       await sound.playAsync();
       sound.setOnPlaybackStatusUpdate(async (status) => {
         if (status.isLoaded && status.didJustFinish) {
-          await sound.unloadAsync();
+          await sound.unloadAsync().catch(() => {});
+          if (soundRef.current === sound) {
+            soundRef.current = null;
+          }
         }
       });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
+    } catch (error) {}
   };
 
-  // Toggle quarter tone for any key
   const toggleQuarterTone = (toggleKey: string) => {
     setQuarterToneToggles((prev) => ({
       ...prev,
@@ -210,7 +217,7 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
     }));
   };
 
-  // Calculate dimensions dynamically
+  // ... (باقي الكود والـ JSX يبقى كما هو تمامًا)
   let whiteKeyWidth = 0,
     whiteKeyHeight = 0,
     blackKeyWidth = 0,
@@ -232,21 +239,17 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
   const blackKeyToggles = pianoLayout.filter(
     (k) => k.hasToggle && k.type === "black"
   );
-
   const whiteKeyToggles = pianoLayout.filter(
     (k) => k.hasToggle && k.type === "white"
   );
 
   return (
     <View style={styles.mainContainer}>
-      {/* Toggle buttons container */}
       <View style={styles.toggleContainer}>
         <View style={styles.toggleRow}>
           {blackKeyToggles.map((key) => {
-            if (!key.toggleKey) return null; // Early return if toggleKey is undefined
-
+            if (!key.toggleKey) return null;
             const active = !!quarterToneToggles[key.toggleKey];
-
             return (
               <TouchableOpacity
                 key={key.toggleKey}
@@ -268,13 +271,10 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
             );
           })}
         </View>
-
         <View style={styles.toggleRow}>
           {whiteKeyToggles.map((key) => {
-            if (!key.toggleKey) return null; // Guard against undefined toggleKey
-
+            if (!key.toggleKey) return null;
             const active = !!quarterToneToggles[key.toggleKey];
-
             return (
               <TouchableOpacity
                 key={key.toggleKey}
@@ -297,8 +297,6 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
           })}
         </View>
       </View>
-
-      {/* Piano rendering as before, but remove toggle buttons from keys */}
       <View
         style={[
           styles.pianoContainer,
@@ -311,7 +309,6 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
             {(function () {
               let currentWhiteKeyIndex = -1;
               const elements: JSX.Element[] = [];
-
               pianoLayout.forEach((key) => {
                 if (key.type === "white") {
                   currentWhiteKeyIndex++;
@@ -319,8 +316,6 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
                     key.hasToggle &&
                     key.toggleKey &&
                     quarterToneToggles[key.toggleKey];
-
-                  // White key
                   elements.push(
                     <TouchableOpacity
                       key={`${key.note}-white`}
@@ -356,18 +351,14 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
                     </TouchableOpacity>
                   );
                 } else if (key.type === "black") {
-                  // Position black key relative to current white key index
                   const blackKeyLeft =
                     currentWhiteKeyIndex * whiteKeyWidth +
                     whiteKeyWidth -
                     blackKeyWidth / 2;
-
                   const isToggled =
                     key.hasToggle &&
                     key.toggleKey &&
                     quarterToneToggles[key.toggleKey];
-
-                  // Black key
                   elements.push(
                     <TouchableOpacity
                       key={`${key.note}-black`}
@@ -406,7 +397,6 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
                   );
                 }
               });
-
               return elements;
             })()}
           </>
@@ -416,6 +406,7 @@ const PianoScreen: React.FC<PlaygroundScreenProps> = ({
   );
 };
 
+// ... (Styles remain the same)
 const styles = StyleSheet.create({
   mainContainer: {
     // justifyContent: "center",

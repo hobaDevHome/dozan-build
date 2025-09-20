@@ -2,13 +2,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   ScrollView,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
-import { RouteProp, useRoute } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native"; // استيراد useFocusEffect
 import {
   scalesLists,
   keysMap,
@@ -16,12 +14,10 @@ import {
   maqamsSoundFolders,
   dictationSoundFolders,
   Maqam,
-  scalesNamesMap,
   soundFolders,
 } from "@/constants/scales";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSettings } from "@/context/SettingsContext";
-import { Asset } from "expo-asset";
 import { Audio } from "expo-av";
 import {
   scalesListsForDictation,
@@ -47,103 +43,90 @@ const maqamatQuarterTones = {
 
 const DictaionsPlay = () => {
   const route = useRoute<RouteProp<{ params: PlayScreenParams }, "params">>();
-  const { id: id, scale: scale } = route.params || {};
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentNoteIndex, setCurrentNoteIndex] = useState(0); // Tracks the index for *correct* note checking
-  const [clicksMade, setClicksMade] = useState(0); // Tracks the number of user clicks
-  const [randomNotes, setRandomNotes] = useState<string[]>([]);
-  const [randomSound, setRandomSound] = useState<string>("");
-  const [currentSoundObject, setCurrentSoundObject] =
-    useState<Audio.Sound | null>(null);
+  const { id, scale } = route.params || {};
 
+  // --- المتغيرات الأصلية للمكون ---
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
+  const [clicksMade, setClicksMade] = useState(0);
+  const [randomNotes, setRandomNotes] = useState<string[]>([]);
   const [iconColors, setIconColors] = useState(Array(4).fill("gray"));
-  // const [showRectangle, setShowRectangle] = useState(false); // Replaced by showCorrectNotes
   const [showCorrectNotes, setShowCorrectNotes] = useState(false);
   const [correctNoteNames, setCorrectNoteNames] = useState<string[]>([]);
-
   const [clickedItems, setClickedItems] = useState(0);
   const [clickedright, setClickedright] = useState(0);
   const [showSikaDiscalimer, setShowSikaDiscalimer] = useState(false);
   const [score, setScore] = useState({ correct: 0, incorrect: 0 });
 
-  const { state, dispatch } = useSettings();
+  const { state } = useSettings();
   let selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
-  const navigation = useNavigation();
+
+  // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
-  const cancelled = useRef(false);
-  const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for timeout
+  const maqamSoundRef = useRef<Audio.Sound | null>(null); // Ref مخصص لصوت المقام
+  const revealTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", () => {
-      // Stop and unload sound when leaving the screen
-      if (currentSoundObject) {
-        currentSoundObject
-          .stopAsync()
-          .catch((error) => console.log("Error stopping sound:", error));
-        currentSoundObject
-          .unloadAsync()
-          .catch((error) => console.log("Error unloading sound:", error));
-      }
-    });
+  // ======================= الحل المركزي باستخدام useFocusEffect =======================
+  useFocusEffect(
+    useCallback(() => {
+      // هذا الكود يعمل عند الدخول إلى الشاشة
+      // لا حاجة لوضع أي شيء هنا إذا كانت البداية تتم يدويًا بالضغط على زر "Play"
 
-    return unsubscribe; // Cleanup listener on unmount
-  }, [navigation, currentSoundObject]);
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("blur", async () => {
-      // Reset state when leaving the screen
-      setClickedItems(0);
-      setClickedright(0);
-      setShowCorrectNotes(false);
-      setIsPlaying(false);
-      setCurrentNoteIndex(0);
-      setIconColors(Array(4).fill("gray"));
-      setScore({ correct: 0, incorrect: 0 });
+      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      return () => {
+        // 1. إعادة ضبط الحالة بالكامل
+        setClickedItems(0);
+        setClickedright(0);
+        setShowCorrectNotes(false);
+        setIsPlaying(false);
+        setCurrentNoteIndex(0);
+        setIconColors(Array(4).fill("gray"));
+        setScore({ correct: 0, incorrect: 0 });
+        setRandomNotes([]);
+        setCorrectNoteNames([]);
+        setClicksMade(0);
 
-      // أوقف كل الأصوات عند مغادرة الصفحة
-      if (soundRef.current) {
-        try {
-          await soundRef.current.stopAsync();
-          await soundRef.current.unloadAsync();
+        // 2. إيقاف وتفريغ صوت النغمة الرئيسي
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
-        } catch (error) {
-          console.log("Error stopping/unloading soundRef:", error);
         }
-      }
-      if (currentSoundObject) {
-        try {
-          await currentSoundObject.stopAsync();
-          await currentSoundObject.unloadAsync();
-          setCurrentSoundObject(null);
-        } catch (error) {
-          console.log("Error stopping/unloading currentSoundObject:", error);
+        // 3. إيقاف وتفريغ صوت المقام
+        if (maqamSoundRef.current) {
+          maqamSoundRef.current.stopAsync().catch(() => {});
+          maqamSoundRef.current.unloadAsync().catch(() => {});
+          maqamSoundRef.current = null;
         }
-      }
-    });
+        // 4. إلغاء أي مؤقتات معلقة
+        if (revealTimeoutRef.current) {
+          clearTimeout(revealTimeoutRef.current);
+          revealTimeoutRef.current = null;
+        }
+      };
+    }, [])
+  );
+  // ======================= نهاية الحل =======================
 
-    return unsubscribe;
-  }, [navigation, currentSoundObject]);
   useEffect(() => {
     if (showCorrectNotes && randomNotes.length > 0) {
-      // إعادة حساب أسماء النغمات وفق اللغة الحالية
       const names = randomNotes.map((note) => getNoteDisplayName(note));
       setCorrectNoteNames(names);
     }
-  }, [state.language]);
+  }, [state.language, showCorrectNotes, randomNotes]);
 
   const levelLabels = state.labels.introGamePage.levelPage;
   const cadence = scalesLists[selectedScale as Maqam];
   const maxStep = 1;
-
-  // عند الاستخدام كالتالي
   const quarterTones = maqamatQuarterTones.hasOwnProperty(selectedScale)
     ? maqamatQuarterTones[selectedScale as keyof typeof maqamatQuarterTones]
     : {};
-  // Helper to get display name based on settings
+
   const getNoteDisplayName = (note: string): string => {
     const keyIndex = cadence.findIndex(
       (key) => key.toLowerCase() === note.toLowerCase()
     );
-    if (keyIndex === -1) return note; // Fallback
+    if (keyIndex === -1) return note;
 
     let keyName1 =
       cadence[keyIndex].charAt(0).toUpperCase() + cadence[keyIndex].slice(1);
@@ -155,86 +138,56 @@ const DictaionsPlay = () => {
     let currentKeyMap =
       tonesLables[state.toneLabel as keyof typeof tonesLables];
     if (state.language === "en") {
-      return currentKeyMap.hasOwnProperty(keyName1)
-        ? currentKeyMap[keyName1 as keyof typeof currentKeyMap]
-        : keyName1;
+      return currentKeyMap[keyName1 as keyof typeof currentKeyMap] || keyName1;
     } else {
-      return keysMap.hasOwnProperty(keyName1)
-        ? keysMap[keyName1 as keyof typeof keysMap]
-        : keyName1;
+      return keysMap[keyName1 as keyof typeof keysMap] || keyName1;
     }
   };
 
-  //////////////// play tone function ///////////////////////
   const playTone = async (note: string, folderType: number = 0) => {
-    if (cancelled.current) return;
     if (soundRef.current) {
-      try {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-      } catch (e) {
-        console.warn("Error stopping/unloading previous sound:", e);
-      }
-      soundRef.current = null;
+      await soundRef.current.stopAsync().catch(() => {});
+      await soundRef.current.unloadAsync().catch(() => {});
     }
 
     const soundName = note.toLowerCase();
-
     const folder =
       folderType === 0
         ? dictationSoundFolders[state.instrument]
         : soundFolders[state.instrument];
-
-    if (!folder) {
-      console.error(`Instrument \"${state.instrument}\" not found.`);
-      return;
-    }
+    if (!folder) return;
 
     try {
-      // --- بداية التغيير ---
       const soundModule = folder(`./${soundName}.mp3`);
-
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
+      if (!soundModule) return;
 
       const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       soundRef.current = soundObject;
-      // --- نهاية التغيير ---
-
       await soundObject.playAsync();
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded && status.didJustFinish) {
-          await soundObject.unloadAsync().catch(console.warn);
+        if (status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync().catch(() => {});
           if (soundRef.current === soundObject) {
             soundRef.current = null;
           }
         }
       });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
+    } catch (error) {}
   };
-
-  //////////////// play cadence function (Unused in this game logic) ///////////////////////
-  // const playCadence = async () => { ... };
 
   const playSequence = async (notesToPlay: string[]) => {
     setIsPlaying(true);
-    for (let i = 0; i < notesToPlay.length; i++) {
-      if (cancelled.current) break;
-      await playTone(notesToPlay[i], 1);
-      await new Promise((resolve) => setTimeout(resolve, 1200)); // Delay between notes
+    for (const note of notesToPlay) {
+      await playTone(note, 1);
+      await new Promise((resolve) => {
+        revealTimeoutRef.current = setTimeout(resolve, 1200);
+      });
     }
     setIsPlaying(false);
   };
 
   const playRandomNotes = async () => {
-    cancelled.current = false;
-    if (revealTimeoutRef.current) {
-      clearTimeout(revealTimeoutRef.current);
-    }
+    if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
     setClickedItems(0);
     setClickedright(0);
     setIconColors(Array(4).fill("gray"));
@@ -242,109 +195,46 @@ const DictaionsPlay = () => {
     setCorrectNoteNames([]);
     setCurrentNoteIndex(0);
     setClicksMade(0);
-    setRandomNotes([]); // Clear previous notes first
+    setRandomNotes([]);
     setShowSikaDiscalimer(false);
 
-    const currentMaqamList = scalesListsForDictation[selectedScale as Maqam];
-    let selectedRandomSequence =
-      currentMaqamList[Math.floor(Math.random() * currentMaqamList.length)];
-    let currentNotes = selectedRandomSequence.notes;
-    let currentSound = selectedRandomSequence.name;
+    const pivots = maqamPivots[selectedScale] || [];
+    if (!cadence || cadence.length < 4) return;
 
-    setRandomNotes(currentNotes);
-    setRandomSound(currentSound);
-    //  play pre recorded sounds
-    // ====================================
-    //await playTone(currentSound);
+    const phrase: string[] = [];
+    let currentIndex: number;
+    const pivotNote = pivots[Math.floor(Math.random() * pivots.length)];
+    currentIndex =
+      pivotNote && cadence.includes(pivotNote)
+        ? cadence.indexOf(pivotNote)
+        : Math.floor(Math.random() * cadence.length);
+    phrase.push(cadence[currentIndex]);
 
-    /////////////////////////////////////////////////////
-    // get notes from pre recoreded sequence in dictaion list
-
-    /////////////// another random sequence but around some pattern ///////////////
-    const startIndex = Math.floor(Math.random() * (cadence.length - 4));
-    let currentIndex = startIndex;
-    const phrase = [cadence[currentIndex]];
-
-    // دالة تعد عدد مرات النغمة في الجملة
-    const countNote = (arr: string[], note: string): number =>
+    const countNote = (arr: string[], note: string) =>
       arr.filter((n) => n === note).length;
 
     for (let i = 1; i < 4; i++) {
-      let nextNote;
+      let nextNote: string;
       let attempts = 0;
-
       do {
-        const step = Math.floor(Math.random() * 3) - 1; // -1 أو 0 أو +1
+        const step = Math.floor(Math.random() * (2 * maxStep + 1)) - maxStep;
         currentIndex = Math.min(
           Math.max(currentIndex + step, 0),
           cadence.length - 1
         );
         nextNote = cadence[currentIndex];
         attempts++;
-        // لو النغمة دي ظهرت بالفعل مرتين ⇒ نجرب تاني
       } while (countNote(phrase, nextNote) >= 2 && attempts < 10);
-
       phrase.push(nextNote);
     }
 
-    // ========================================
-    // play sequence randomly generated
-    // نغمات عشواية من نغمات المقام بحيث لا تتكرر النغمة اكتر من مرتين ف الجملة وماتكونش المسافات بينهم اكتر من تون واحد
-    console.log(phrase);
-    //setRandomNotes(phrase);
-    //await playSequence(phrase);
-
-    // ========= باستخدام ركووزات المقامات =======================
-    const pivots = maqamPivots[selectedScale] || [];
-    if (!currentMaqamList || currentMaqamList.length < 4) {
-      console.warn("Selected scale is not valid or too short.");
-      return;
+    if (!phrase.some((n) => pivots.includes(n)) && pivots.length > 0) {
+      phrase[phrase.length - 1] = pivots[0];
     }
 
-    const countNote2 = (arr: string[], note: string): number =>
-      arr.filter((n) => n === note).length;
-
-    const phrase2: string[] = [];
-
-    let currentIndex2: number;
-    // 1. Start from a pivot note if possible, otherwise choose a random note
-    const pivotNote = pivots[Math.floor(Math.random() * pivots.length)];
-    if (pivotNote && cadence.includes(pivotNote)) {
-      currentIndex2 = cadence.indexOf(pivotNote);
-    } else {
-      currentIndex2 = Math.floor(Math.random() * cadence.length);
-    }
-    phrase2.push(cadence[currentIndex2]);
-
-    // 2. Build the rest of the phrase
-    for (let i = 1; i < 4; i++) {
-      let nextNote: string;
-      let attempts = 0;
-
-      do {
-        const step = Math.floor(Math.random() * (2 * maxStep + 1)) - maxStep;
-        currentIndex2 = Math.min(
-          Math.max(currentIndex2 + step, 0),
-          currentMaqamList.length - 1
-        );
-        nextNote = cadence[currentIndex2];
-        attempts++;
-      } while (countNote(phrase2, nextNote) >= 2 && attempts < 10);
-
-      phrase2.push(nextNote);
-    }
-
-    // 3. Make sure at least one pivot is included
-    const hasPivot = phrase2.some((n) => pivots.includes(n));
-    if (!hasPivot && pivots.length > 0) {
-      phrase2[phrase2.length - 1] = pivots[0]; // نحط Pivot في الآخر
-    }
-
-    console.log("Generated phrase:", phrase2);
-    const hasQuarterTone = phrase2.some((note) => note.includes("q"));
-    if (hasQuarterTone) setShowSikaDiscalimer(true);
-    setRandomNotes(phrase2);
-    await playSequence(phrase2);
+    if (phrase.some((note) => note.includes("q"))) setShowSikaDiscalimer(true);
+    setRandomNotes(phrase);
+    await playSequence(phrase);
   };
 
   const repeatRandomNotes = async () => {
@@ -353,108 +243,69 @@ const DictaionsPlay = () => {
     }
   };
 
-  const revealCorrectSequence = async () => {
+  const revealCorrectSequence = () => {
     const names = randomNotes.map((note) => getNoteDisplayName(note));
-
     setCorrectNoteNames(names);
     setShowCorrectNotes(true);
-
-    // setTimeout(() => {
-    //   playTone(randomSound);
-    //   // revealTimeoutRef.current = null; // Clear ref after execution
-    // }, 1000);
-
-    // Play the correct sequence after 500ms
-    // revealTimeoutRef.current = setTimeout(() => {
-    //   playSequence(randomNotes);
-    //   revealTimeoutRef.current = null; // Clear ref after execution
-    // }, 2000);
   };
 
   const handleGuess = (guess: string) => {
-    if (clicksMade >= 4 || isPlaying || randomNotes.length === 0) {
-      return;
-    }
+    if (clicksMade >= 4 || isPlaying || randomNotes.length === 0) return;
 
     const newIconColors = [...iconColors];
-    const correctNote = randomNotes[clicksMade]; // Check against the note for this click position
-    setClickedItems(clickedItems + 1);
+    const correctNote = randomNotes[clicksMade];
+    setClickedItems((prev) => prev + 1);
 
     if (scale === "Saba" && guess === "fa_d") guess = "sol_b";
+
     if (guess.toLowerCase() === correctNote.toLowerCase()) {
       newIconColors[clicksMade] = "green";
-      setClickedright(clickedright + 1);
+      setClickedright((prev) => prev + 1);
     } else {
-      newIconColors[clicksMade] = "red"; // Stays red if wrong
+      newIconColors[clicksMade] = "red";
     }
 
-    if (clickedItems === 3) {
-      setClickedItems(0);
-      setClickedright(0);
-      if (clickedright === 3) {
+    setIconColors(newIconColors);
+    const nextClicksMade = clicksMade + 1;
+    setClicksMade(nextClicksMade);
+
+    if (nextClicksMade === 4) {
+      if (
+        clickedright +
+          (guess.toLowerCase() === correctNote.toLowerCase() ? 1 : 0) ===
+        4
+      ) {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       } else {
         setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
       }
-    }
-    setIconColors(newIconColors);
-
-    const nextClicksMade = clicksMade + 1;
-    setClicksMade(nextClicksMade);
-    // We don't advance currentNoteIndex based on correctness anymore, only track clicks
-
-    if (nextClicksMade === 4) {
-      // End of round after 4 clicks
       revealCorrectSequence();
     }
-
-    // update score state accordingly:
   };
 
   const playMaqam = async () => {
-    // This function seems unrelated to the core game, keeping it as is
-    if (currentSoundObject !== null) {
-      try {
-        await currentSoundObject.stopAsync();
-        await currentSoundObject.unloadAsync();
-      } catch (error) {
-        console.warn("Error stopping/unloading current sound:", error);
-      }
-      setCurrentSoundObject(null);
+    if (maqamSoundRef.current) {
+      await maqamSoundRef.current.stopAsync().catch(() => {});
+      await maqamSoundRef.current.unloadAsync().catch(() => {});
     }
     let soundName = scale + "Full";
     const folder = maqamsSoundFolders[state.instrument];
-    if (!folder) {
-      console.error(`Instrument \"${state.instrument}\" not found.`);
-      return;
-    }
-    try {
-      // --- بداية التغيير ---
-      const soundModule = folder(`./${soundName}.mp3`);
+    if (!folder) return;
 
-      if (!soundModule) {
-        console.error(`Sound module not found for ${soundName}.mp3`);
-        return;
-      }
+    try {
+      const soundModule = folder(`./${soundName}.mp3`);
+      if (!soundModule) return;
 
       const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
-      setCurrentSoundObject(soundObject);
-      // --- نهاية التغيير ---
-
+      maqamSoundRef.current = soundObject;
       await soundObject.playAsync();
       soundObject.setOnPlaybackStatusUpdate(async (status) => {
-        if (status && status.isLoaded && status.didJustFinish) {
-          await soundObject.unloadAsync().catch(console.warn);
-          setCurrentSoundObject(null);
+        if (status.isLoaded && status.didJustFinish) {
+          await soundObject.unloadAsync().catch(() => {});
+          maqamSoundRef.current = null;
         }
       });
-    } catch (error) {
-      console.error(`Error playing sound ${soundName}:`, error);
-    }
-  };
-
-  const handlePianoKeyPress = (note: string) => {
-    handleGuess(note);
+    } catch (error) {}
   };
 
   return (
@@ -462,7 +313,6 @@ const DictaionsPlay = () => {
       style={styles.scrollView}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* // Title and Score Area */}
       <View style={styles.tilteContainer}>
         <Text style={styles.title}>
           {
@@ -472,31 +322,22 @@ const DictaionsPlay = () => {
           }
         </Text>
       </View>
-
-      {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{score.correct}</Text>
-          <Text style={styles.statLabel}>
-            {state.labels.introGamePage.levelPage.correct}
-          </Text>
+          <Text style={styles.statLabel}>{levelLabels.correct}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{score.incorrect}</Text>
-          <Text style={styles.statLabel}>
-            {" "}
-            {state.labels.introGamePage.levelPage.incorrect}
-          </Text>
+          <Text style={styles.statLabel}>{levelLabels.incorrect}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>
             {score.correct + score.incorrect + 1}
           </Text>
-          <Text style={styles.statLabel}> {state.labels.questionNo}</Text>
+          <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
         </View>
       </View>
-
-      {/* Icons and Correct Notes Display */}
       <View style={styles.feedbackContainer}>
         <View style={styles.iconContainer}>
           {iconColors.map((color, index) => (
@@ -527,17 +368,10 @@ const DictaionsPlay = () => {
           </>
         )}
       </View>
-
-      {/* pino component */}
-
       <PianoScreen
-        onKeyPress={handlePianoKeyPress}
+        onKeyPress={handleGuess}
         initialQuarterToneToggles={quarterTones || {}}
       />
-
-      {/* Buttons Area */}
-
-      {/* Control Buttons */}
       <View style={styles.controlsContainer}>
         <TouchableOpacity
           style={[styles.controlButton, styles.nextButton]}
@@ -565,7 +399,6 @@ const DictaionsPlay = () => {
           />
           <Text style={styles.controlButtonText}>{levelLabels.repeat}</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.controlButton, styles.repeatButton]}
           onPress={playMaqam}
@@ -586,7 +419,7 @@ const DictaionsPlay = () => {
   );
 };
 
-// Add new styles and adjust existing ones
+// --- Styles remain unchanged ---
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1, // اجعلي الـ ScrollView نفسه يملأ الشاشة
