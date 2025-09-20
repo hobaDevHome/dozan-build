@@ -482,6 +482,7 @@ const IntervalTrainingScreen = () => {
                   {lables.intervalsSettings}
                 </Text>
                 <Text style={styles.chooseText}>{lables.chooseIntervals}:</Text>
+
                 <View style={styles.intervalSelectionContainer}>
                   {Object.keys(intervalSteps).map((interval) => (
                     <OptionButton2
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
     right: 15,
     width: 40,
     height: 40,
-    backgroundColor: "#376863",
+    backgroundColor: "#45B7D1",
     borderRadius: 20,
     padding: 5,
     justifyContent: "center",
@@ -630,7 +631,7 @@ const styles = StyleSheet.create({
     maxWidth: Platform.OS === "web" ? 400 : "100%",
   },
   modalContent: {
-    backgroundColor: "#fbedd3",
+    backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
     width: "80%",

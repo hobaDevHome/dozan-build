@@ -27,8 +27,7 @@ import {
   scalesListsForDictation,
   maqamPivots,
 } from "../../constants/DictationLists";
-import PlaygroundScreen from "../playground";
-import tr from "@/locales/tr";
+import PianoScreen from "../PianoScreen";
 
 type PlayScreenParams = {
   id: string;
@@ -134,6 +133,11 @@ const DictaionsPlay = () => {
   const levelLabels = state.labels.introGamePage.levelPage;
   const cadence = scalesLists[selectedScale as Maqam];
   const maxStep = 1;
+
+  // عند الاستخدام كالتالي
+  const quarterTones = maqamatQuarterTones.hasOwnProperty(selectedScale)
+    ? maqamatQuarterTones[selectedScale as keyof typeof maqamatQuarterTones]
+    : {};
   // Helper to get display name based on settings
   const getNoteDisplayName = (note: string): string => {
     const keyIndex = cadence.findIndex(
@@ -461,7 +465,6 @@ const DictaionsPlay = () => {
       {/* // Title and Score Area */}
       <View style={styles.tilteContainer}>
         <Text style={styles.title}>
-          {state.labels.dictations.description} :{" "}
           {
             state.labels.basicTrainingPages.basicTrainingHome[
               selectedScale as Maqam
@@ -527,10 +530,9 @@ const DictaionsPlay = () => {
 
       {/* pino component */}
 
-      <PlaygroundScreen
+      <PianoScreen
         onKeyPress={handlePianoKeyPress}
-        showIntro={false}
-        initialQuarterToneToggles={maqamatQuarterTones[selectedScale] || {}}
+        initialQuarterToneToggles={quarterTones || {}}
       />
 
       {/* Buttons Area */}
@@ -597,7 +599,7 @@ const styles = StyleSheet.create({
 
   feedbackContainer: {
     alignItems: "center",
-    marginVertical: 20, // Add some vertical space
+    marginBottom: 5, // Add some vertical space
   },
   iconContainer: {
     flexDirection: "row",
@@ -614,7 +616,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   correctNotesText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#333",
     textAlign: "center",
   },
@@ -636,7 +638,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     margin: 4,
-    minWidth: 60, // Ensure buttons have a decent size
+    minWidth: 60,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -663,10 +665,6 @@ const styles = StyleSheet.create({
   pickerContainer: {
     width: "100%",
     alignItems: "center",
-    // Removed styling as it wasn't used in the provided code's return
-    // borderRadius: 10,
-    // overflow: "hidden",
-    // padding: 10,
   },
   scoreContainer: {
     flexDirection: "row",
@@ -682,7 +680,8 @@ const styles = StyleSheet.create({
   tilteContainer: {
     borderRadius: 16,
     padding: 18,
-    marginBottom: 16,
+    marginTop: 5,
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -693,7 +692,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     position: "relative",
     backgroundColor: "#4ECDC4",
-    width: "70%",
+    width: "50%",
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
