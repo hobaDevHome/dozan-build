@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -22,10 +28,10 @@ type Maqam =
   | "Kurd";
 
 const TrainingListen = () => {
+  // --- الخطوة 1: استدعاء جميع الـ Hooks في البداية وبدون شروط ---
   const { state } = useSettings();
   const { id, scale, levelChoices, label } = state.trainingParams || {};
 
-  // **إعادة متغير الحالة المحلي كما كان**
   const [playChords, setPlayChords] = useState<boolean>(true);
   const [buttonColors, setButtonColors] = useState<{
     [key: string]: "green" | "red" | null;
@@ -34,13 +40,46 @@ const TrainingListen = () => {
   const soundRef = useRef<Audio.Sound | null>(null);
   const levelChoicesRef = useRef(levelChoices);
   const backToTonicRef = useRef(state.backToTonic);
-  const timersRef = useRef<NodeJS.Timeout[]>([]);
+  const timersRef = useRef<number[]>([]);
 
+  // -----------------------------------------------------------------
+
+  // --- التأثيرات الجانبية (Side Effects) تبقى كما هي ---
   useEffect(() => {
     levelChoicesRef.current = levelChoices;
     backToTonicRef.current = state.backToTonic;
   }, [levelChoices, state.backToTonic]);
 
+  useFocusEffect(
+    useCallback(() => {
+      // التأكد من وجود البيانات قبل تشغيل الصوت
+      if (scale && levelChoices) {
+        playRandomTone();
+      }
+      return () => {
+        if (soundRef.current) {
+          soundRef.current.stopAsync().catch(() => {});
+          soundRef.current.unloadAsync().catch(() => {});
+          soundRef.current = null;
+        }
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+      };
+    }, [state.instrument, scale, levelChoices]) // أضفنا scale و levelChoices لضمان إعادة التشغيل عند توفرها
+  );
+
+  // --- الخطوة 2: التحقق من البيانات قبل عرض واجهة المستخدم الرئيسية ---
+  if (!scale || !levelChoices) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#45b7d1" />
+      </View>
+    );
+  }
+  // -----------------------------------------------------------------
+
+  // --- بقية منطق المكون الذي يعتمد على البيانات ---
+  // هذا الكود الآن آمن لأنه لا يتم الوصول إليه إلا إذا كانت scale و levelChoices موجودة
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const cadence = scalesLists[selectedScale as Maqam];
   let keyLables = cadence.map((key) => {
@@ -53,22 +92,7 @@ const TrainingListen = () => {
   });
   let currentKeyMap = tonesLables[state.toneLabel as keyof typeof tonesLables];
 
-  useFocusEffect(
-    useCallback(() => {
-      playRandomTone();
-      return () => {
-        if (soundRef.current) {
-          soundRef.current.stopAsync().catch(() => {});
-          soundRef.current.unloadAsync().catch(() => {});
-          soundRef.current = null;
-        }
-        timersRef.current.forEach(clearTimeout);
-        timersRef.current = [];
-      };
-    }, [])
-  );
-
-  const addTimer = (timer: NodeJS.Timeout) => {
+  const addTimer = (timer: number) => {
     timersRef.current.push(timer);
   };
 
@@ -76,6 +100,7 @@ const TrainingListen = () => {
     note: string,
     duration: number = 1000
   ): Promise<void> => {
+    // ... (الدالة تبقى كما هي)
     return new Promise(async (resolve) => {
       try {
         const soundName = note.toLowerCase();
@@ -109,7 +134,6 @@ const TrainingListen = () => {
     if (!levelChoicesRef.current || levelChoicesRef.current.length === 0)
       return;
 
-    // **استخدام متغير الحالة المحلي playChords كما كان في الأصل**
     if (playChords) {
       await playTone("cords");
     }
@@ -131,6 +155,7 @@ const TrainingListen = () => {
     startIndex: number,
     direction: "up" | "down"
   ) => {
+    // ... (الدالة تبقى كما هي)
     const choices = levelChoicesRef.current;
     const loopEnd = direction === "down" ? -1 : choices.length;
     const step = direction === "down" ? -1 : 1;
@@ -144,6 +169,7 @@ const TrainingListen = () => {
   };
 
   const handleGuess = async (guess: string) => {
+    // ... (الدالة تبقى كما هي)
     setButtonColors({ [guess]: "green" });
     addTimer(setTimeout(() => setButtonColors({}), 500));
 
@@ -165,6 +191,7 @@ const TrainingListen = () => {
     addTimer(setTimeout(playRandomTone, 500));
   };
 
+  // --- الخطوة 3: عرض واجهة المستخدم الرئيسية ---
   return (
     <View style={styles.mainContainer}>
       <View style={styles.leveContainer}>
@@ -206,6 +233,12 @@ const TrainingListen = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FAFAFA",
+  },
   mainContainer: {
     flex: 1,
     flexDirection: "column",
