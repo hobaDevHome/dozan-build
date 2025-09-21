@@ -18,9 +18,9 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  TouchableWithoutFeedback,
   ScrollView,
   SafeAreaView,
+  Pressable,
 } from "react-native";
 
 const MaqamTrainingScreen = () => {
@@ -51,7 +51,9 @@ const MaqamTrainingScreen = () => {
 
   // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
-  const timersRef = useRef<NodeJS.Timeout[]>([]);
+  // ======================= التغيير الأول هنا =======================
+  // غيّرنا NodeJS.Timeout[] إلى number[]
+  const timersRef = useRef<number[]>([]);
 
   // ======================= الحل المركزي باستخدام useFocusEffect =======================
   useFocusEffect(
@@ -87,7 +89,9 @@ const MaqamTrainingScreen = () => {
   );
   // ======================= نهاية الحل =======================
 
-  const addTimer = (timer: NodeJS.Timeout) => {
+  // ======================= التغيير الثاني هنا =======================
+  // غيّرنا NodeJS.Timeout إلى number
+  const addTimer = (timer: number) => {
     timersRef.current.push(timer);
   };
 
@@ -180,7 +184,7 @@ const MaqamTrainingScreen = () => {
 
       if (state.autoQuestionJump) {
         const timer = setTimeout(playMaqam, 2000);
-        addTimer(timer);
+        addTimer(timer); // الآن هذا السطر صحيح
       }
     } else {
       if (firstAttempt) {
@@ -212,6 +216,7 @@ const MaqamTrainingScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* ... باقي الكود JSX يبقى كما هو بدون أي تغيير ... */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -310,10 +315,9 @@ const MaqamTrainingScreen = () => {
             </View>
           </TouchableOpacity>
         </View>
-
         <Modal visible={modalVisible} transparent animationType="slide">
-          <TouchableWithoutFeedback onPress={toggleModal}>
-            <View style={styles.modalContainer}>
+          <Pressable onPress={toggleModal} style={styles.modalContainer}>
+            <View style={{ flex: 1, justifyContent: "center" }}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>{lables.maqamtSettings}</Text>
                 <Text style={styles.chooseText}>{lables.chooseMaqam}</Text>
@@ -345,14 +349,14 @@ const MaqamTrainingScreen = () => {
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
+          </Pressable>
         </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// --- Styles remain unchanged ---
+// --- الأنماط تبقى كما هي ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -408,7 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
-    width: "80%",
+    width: "90%",
     alignItems: "center",
     flexWrap: "wrap",
   },

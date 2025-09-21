@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  TouchableWithoutFeedback,
   SafeAreaView,
   ScrollView,
+  Pressable,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native"; // استيراد useFocusEffect
+import { useFocusEffect } from "@react-navigation/native";
 import { useSettings } from "../context/SettingsContext";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
@@ -26,7 +26,6 @@ const intervalSteps: Record<string, string[]> = {
 };
 
 const IntervalTrainingScreen = () => {
-  // --- المتغيرات الأصلية للمكون ---
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedIntervals, setSelectedIntervals] = useState<string[]>(
     Object.keys(intervalSteps)
@@ -43,15 +42,13 @@ const IntervalTrainingScreen = () => {
   const { state } = useSettings();
   const lables = state.labels.intervalsTraingingPage;
 
-  // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
-  const timersRef = useRef<NodeJS.Timeout[]>([]);
+  // ======================= التغيير الأول هنا =======================
+  // غيّرنا NodeJS.Timeout[] إلى number[]
+  const timersRef = useRef<number[]>([]);
 
-  // ======================= الحل المركزي باستخدام useFocusEffect =======================
   useFocusEffect(
     useCallback(() => {
-      // هذا الكود يعمل عند الدخول إلى الشاشة
-      // إعادة ضبط الحالة بالكامل عند كل دخول جديد
       setIsPlaying(false);
       setCurrentInterval(null);
       setUserSelection(null);
@@ -60,26 +57,23 @@ const IntervalTrainingScreen = () => {
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
 
-      // بدء أول سؤال عند الدخول
       playInterval();
 
-      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
       return () => {
-        // 1. إيقاف وتفريغ أي صوت يعمل حاليًا
         if (soundRef.current) {
           soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
-        // 2. إلغاء جميع المؤقتات المعلقة
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [selectedIntervals]) // إعادة تشغيل التأثير إذا تغيرت قائمة الفواصل المختارة
+    }, [selectedIntervals])
   );
-  // ======================= نهاية الحل =======================
 
-  const addTimer = (timer: NodeJS.Timeout) => {
+  // ======================= التغيير الثاني هنا =======================
+  // غيّرنا NodeJS.Timeout إلى number
+  const addTimer = (timer: number) => {
     timersRef.current.push(timer);
   };
 
@@ -109,9 +103,11 @@ const IntervalTrainingScreen = () => {
             soundObject.unloadAsync().catch(() => {});
             resolve();
           }, 500);
-          addTimer(timer);
+          addTimer(timer); // الآن هذا السطر صحيح
         });
-      } catch (error) {}
+      } catch (error) {
+        console.error("Error playing sound:", error); // إضافة تسجيل للخطأ
+      }
     }
     setIsPlaying(false);
   };
@@ -156,7 +152,7 @@ const IntervalTrainingScreen = () => {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
       setShowAnswer(true);
-      setIsAnswered(true); // منع المزيد من التخمينات
+      setIsAnswered(true);
 
       if (state.autoQuestionJump) {
         const timer = setTimeout(playInterval, 3500);
@@ -166,7 +162,7 @@ const IntervalTrainingScreen = () => {
       if (firstAttempt) {
         setScore((prev) => ({ ...prev, incorrect: prev.incorrect + 1 }));
       }
-      setFirstAttempt(false); // السماح بمحاولة أخرى
+      setFirstAttempt(false);
     }
   };
 
@@ -185,6 +181,7 @@ const IntervalTrainingScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* ... باقي الكود JSX يبقى كما هو بدون أي تغيير ... */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -277,8 +274,8 @@ const IntervalTrainingScreen = () => {
         </View>
 
         <Modal visible={modalVisible} transparent animationType="slide">
-          <TouchableWithoutFeedback onPress={toggleModal}>
-            <View style={styles.modalContainer}>
+          <Pressable onPress={toggleModal} style={styles.modalContainer}>
+            <View style={{ flex: 1, justifyContent: "center" }}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>
                   {lables.intervalsSettings}
@@ -312,14 +309,14 @@ const IntervalTrainingScreen = () => {
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableWithoutFeedback>
+          </Pressable>
         </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// --- Styles remain unchanged ---
+// --- الأنماط تبقى كما هي ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -434,7 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
-    width: "80%",
+    width: "90%",
     alignItems: "center",
     // flexWrap: "wrap",
   },
