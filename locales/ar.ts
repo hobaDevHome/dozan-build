@@ -97,7 +97,7 @@ export default {
       palyMaqam: "استمع للمقام",
       correctAnswer: "عظيم ، انها فعلا ",
       wrongAnser: "كلا.. النغمة الصحيحة هي ",
-      playchords: "استمع للكوردات أولا",
+      playchords: "استمع للنغمات الأساسية",
     },
   },
   learnTheMethodText: {},

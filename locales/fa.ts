@@ -98,7 +98,7 @@ export default {
       palyMaqam: " مقام",
       correctAnswer: "آفرین، این ",
       wrongAnser: "خیر، این ",
-      playchords: "ابتدا آکوردها را اجرا کن",
+      playchords: "ابتدا نت‌های اصلی را اجرا کن",
     },
   },
   learnTheMethodText: {},

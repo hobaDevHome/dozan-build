@@ -200,7 +200,7 @@ function CustomDrawerContent() {
             <Text style={styles.settingLabel}>{state.labels.autoJump}</Text>
           </View>
           <Switch
-            value={autoQuestion}
+            value={state.autoQuestionJump}
             onValueChange={(value) => toggleAutoQuestionJump(value)}
             trackColor={{ false: "#E5E5E5", true: "#007AFF" }}
             thumbColor="#FFFFFF"
@@ -214,7 +214,7 @@ function CustomDrawerContent() {
             <Text style={styles.settingLabel}>{state.labels.backToTonic}</Text>
           </View>
           <Switch
-            value={backToTonic}
+            value={state.backToTonic}
             onValueChange={(value) => toggleBackToTonic(value)}
             trackColor={{ false: "#E5E5E5", true: "#007AFF" }}
             thumbColor="#FFFFFF"

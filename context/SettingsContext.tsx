@@ -56,7 +56,7 @@ const initialState: State = {
   labels: en,
   instrument: "piano",
   autoQuestionJump: false,
-  backToTonic: false,
+  backToTonic: true,
   trainingParams: {
     id: "",
     scale: "",

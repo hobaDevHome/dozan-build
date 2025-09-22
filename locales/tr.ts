@@ -98,7 +98,7 @@ export default {
       palyMaqam: "Makamı ",
       correctAnswer: "Tebrikler, bu ",
       wrongAnser: "Hayır, bu ",
-      playchords: "Önce akorları çal",
+      playchords: "Önce temel notaları dinle",
     },
   },
   learnTheMethodText: {},

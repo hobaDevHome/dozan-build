@@ -45,7 +45,7 @@ const TrainingListen = () => {
   useEffect(() => {
     levelChoicesRef.current = levelChoices;
     backToTonicRef.current = state.backToTonic;
-  }, [levelChoices, state.backToTonic]);
+  }, [levelChoices, state.backToTonic, scale]);
 
   useFocusEffect(
     useCallback(() => {
@@ -191,6 +191,15 @@ const TrainingListen = () => {
   return (
     <View style={styles.mainContainer}>
       <View style={styles.leveContainer}>
+        <View style={styles.tilteContainer}>
+          <Text style={styles.title}>
+            {
+              state.labels.basicTrainingPages.basicTrainingHome[
+                selectedScale as Maqam
+              ]
+            }
+          </Text>
+        </View>
         <View style={styles.intro}>
           <Ionicons
             name="musical-notes"
@@ -308,6 +317,32 @@ const styles = StyleSheet.create({
     color: "#6f6f6f",
     textAlign: "center",
     opacity: 0.9,
+  },
+  tilteContainer: {
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 5,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    position: "relative",
+    backgroundColor: "#4ECDC4",
+    width: "50%",
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  title: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "600",
   },
 });
 

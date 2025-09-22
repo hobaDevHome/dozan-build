@@ -66,7 +66,12 @@ const TrainingPlay = () => {
   // ======================= الحل المركزي باستخدام useFocusEffect =======================
   useFocusEffect(
     useCallback(() => {
-      // هذا الكود يعمل عند الدخول إلى الشاشة
+      // هذا الكود سيعمل الآن في كل مرة تدخل فيها إلى الشاشة
+      // أو في كل مرة يتغير فيها المقام الذي اخترته
+
+      // للتأكد 100%، أضف هذا السطر في البداية
+      console.log("useFocusEffect is running! Scale is:", scale);
+
       // إعادة ضبط الحالة والبدء
       setFeedbackMessage("");
       setCanGuess(false);
@@ -76,27 +81,32 @@ const TrainingPlay = () => {
       setIsPlaying(false);
       setCurrentTone("");
       setScore({ correct: 0, incorrect: 0 });
+
+      // استدعاء الدالة التي كانت لا تعمل
       playRandomTone();
 
-      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      // --- دالة التنظيف (Cleanup Function) ---
+      // هذه الدالة ستعمل عند الخروج من الشاشة
       return () => {
-        // 1. إيقاف وتفريغ صوت النغمة الرئيسي
+        console.log("Cleaning up the screen..."); // للتأكد من أن التنظيف يعمل
+        setIsPlaying(false);
+        // إيقاف وتفريغ كل الأصوات النشطة
         if (soundRef.current) {
           soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
-        // 2. إيقاف وتفريغ صوت المقام
         if (maqamSoundRef.current) {
           maqamSoundRef.current.stopAsync().catch(() => {});
           maqamSoundRef.current.unloadAsync().catch(() => {});
           maqamSoundRef.current = null;
         }
-        // 3. إلغاء جميع المؤقتات المعلقة
+
+        // إلغاء أي مؤقتات (timers) معلقة لمنع تسريب الذاكرة
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [])
+    }, [state.trainingParams]) // <-- التعديل الأهم: أضفنا الاعتمادية هنا
   );
   // ======================= نهاية الحل =======================
 
@@ -146,6 +156,7 @@ const TrainingPlay = () => {
     if (isPlaying) return;
 
     setIsPlaying(true);
+    console.log("playchords", playChords);
     if (playChords) {
       const chordName = `${scale}_chord`;
       console.log("Playing chord:", chordName);
@@ -169,7 +180,7 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i >= 0; i--) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone, 400);
+      await playTone(tone, 100);
     }
     setButtonColors({});
   };
@@ -179,7 +190,7 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i < choices.length; i++) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone, 400);
+      await playTone(tone, 100);
     }
     setButtonColors({});
   };
@@ -259,6 +270,15 @@ const TrainingPlay = () => {
 
   return (
     <View style={styles.mainContainer}>
+      <View style={styles.tilteContainer}>
+        <Text style={styles.title}>
+          {
+            state.labels.basicTrainingPages.basicTrainingHome[
+              selectedScale as Maqam
+            ]
+          }
+        </Text>
+      </View>
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>{score.correct}</Text>
@@ -555,6 +575,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
     marginTop: 4,
+  },
+  tilteContainer: {
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 5,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    position: "relative",
+    backgroundColor: "#4ECDC4",
+    width: "50%",
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  title: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "600",
   },
 });
 

@@ -103,7 +103,7 @@ export default {
       palyMaqam: "Maqam",
       correctAnswer: "Good, it's ",
       wrongAnser: "No, it's ",
-      playchords: "Play chords first",
+      playchords: "Play the basic notes first",
     },
   },
   learnTheMethodText: {},
