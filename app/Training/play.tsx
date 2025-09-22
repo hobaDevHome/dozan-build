@@ -148,7 +148,51 @@ const TrainingPlay = () => {
       }
     });
   };
+  const playQuickTone = (
+    note: string,
+    duration: number = 400 // مدة افتراضية 400ms
+  ): Promise<void> => {
+    return new Promise(async (resolve) => {
+      // إيقاف أي صوت يعمل حاليًا لضمان عدم التداخل
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => {});
+        await soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current = null;
+      }
 
+      try {
+        const soundName = note.toLowerCase();
+        const folder = soundFolders[state.instrument];
+        if (!folder) return resolve();
+
+        const soundModule = folder(`./${soundName}.mp3`);
+        if (!soundModule) return resolve();
+
+        const { sound: soundObject } = await Audio.Sound.createAsync(
+          soundModule
+        );
+        soundRef.current = soundObject; // تخزين الكائن لإيقافه لاحقًا
+        await soundObject.playAsync();
+
+        // الأهم: جدولة إيقاف الصوت بعد المدة المحددة
+        const timer = setTimeout(async () => {
+          if (soundRef.current === soundObject) {
+            // تأكد من أننا نوقف الصوت الصحيح
+            await soundObject.stopAsync().catch(() => {});
+            await soundObject.unloadAsync().catch(() => {});
+            soundRef.current = null;
+          }
+          resolve(); // إنهاء الـ Promise بعد إيقاف الصوت
+        }, duration);
+
+        // تسجيل المؤقت لإلغائه عند الخروج من الشاشة
+        addTimer(timer);
+      } catch (error) {
+        console.error("Error playing quick tone:", error);
+        resolve(); // تأكد من إنهاء الـ Promise حتى في حالة الخطأ
+      }
+    });
+  };
   const playRandomTone = async () => {
     setFeedbackMessage("");
     setCanGuess(true);
@@ -180,7 +224,8 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i >= 0; i--) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone, 100);
+      // await playTone(tone, 100);
+      await playQuickTone(tone, 400);
     }
     setButtonColors({});
   };
@@ -190,7 +235,8 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i < choices.length; i++) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone, 100);
+      // await playTone(tone, 100);
+      await playQuickTone(tone, 400);
     }
     setButtonColors({});
   };
@@ -206,7 +252,7 @@ const TrainingPlay = () => {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
       setButtonColors({ [guess]: "green" });
-      addTimer(setTimeout(() => setButtonColors({}), 500));
+      setTimeout(() => setButtonColors({}), 500);
 
       const guessedIndex = choices.indexOf(lowerCaseGuess);
       if (state.backToTonic) {
@@ -222,12 +268,13 @@ const TrainingPlay = () => {
       } else {
         await playTone(lowerCaseGuess);
       }
-      addTimer(
+
+      if (state.autoQuestionJump) {
         setTimeout(() => {
           setQuestionNumber((prev) => prev + 1);
           playRandomTone();
-        }, 300)
-      );
+        }, 300);
+      }
     } else {
       playTone(lowerCaseGuess);
       if (firstAttempt) {
@@ -235,7 +282,7 @@ const TrainingPlay = () => {
       }
       setFirstAttempt(false);
       setButtonColors({ [guess]: "red" });
-      addTimer(setTimeout(() => setButtonColors({}), 800));
+      setTimeout(() => setButtonColors({}), 800);
     }
   };
 
