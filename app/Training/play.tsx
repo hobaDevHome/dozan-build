@@ -6,6 +6,7 @@ import {
   soundFolders,
   keysMap,
   tonesLables,
+  chordsFolders,
   maqamsSoundFolders,
 } from "@/constants/scales";
 import { useSettings } from "@/context/SettingsContext";
@@ -26,7 +27,6 @@ const TrainingPlay = () => {
   const { state } = useSettings();
   const { id, scale, levelChoices = [], label } = state.trainingParams || {};
 
-  // --- المتغيرات الأصلية للمكون ---
   const [currentTone, setCurrentTone] = useState<string>("");
   const [score, setScore] = useState({ correct: 0, incorrect: 0 });
   const [playChords, setPlayChords] = useState<boolean>(true);
@@ -41,7 +41,6 @@ const TrainingPlay = () => {
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(1);
 
-  // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
   const maqamSoundRef = useRef<Audio.Sound | null>(null); // Ref مخصص لصوت المقام
   const timersRef = useRef<NodeJS.Timeout[]>([]); // Ref لتخزين كل المؤقتات
@@ -107,12 +106,15 @@ const TrainingPlay = () => {
 
   const playTone = async (
     note: string,
-    duration: number = 1000
+    duration: number = 1000,
+    chord: boolean = false
   ): Promise<void> => {
     return new Promise(async (resolve) => {
       try {
-        const soundName = note.toLowerCase();
-        const folder = soundFolders[state.instrument];
+        const soundName = chord ? note : note.toLowerCase();
+        const folder = chord
+          ? chordsFolders[state.instrument]
+          : soundFolders[state.instrument];
         if (!folder) return resolve();
         const soundModule = folder(`./${soundName}.mp3`);
         if (!soundModule) return resolve();
@@ -145,7 +147,9 @@ const TrainingPlay = () => {
 
     setIsPlaying(true);
     if (playChords) {
-      await playTone("cords");
+      const chordName = `${scale}_chord`;
+      console.log("Playing chord:", chordName);
+      await playTone(chordName, 1500, true);
     }
 
     const choices = levelChoicesRef.current;

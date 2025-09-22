@@ -10,6 +10,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
   scalesLists,
   soundFolders,
+  chordsFolders,
   keysMap,
   tonesLables,
 } from "@/constants/scales";
@@ -28,7 +29,6 @@ type Maqam =
   | "Kurd";
 
 const TrainingListen = () => {
-  // --- الخطوة 1: استدعاء جميع الـ Hooks في البداية وبدون شروط ---
   const { state } = useSettings();
   const { id, scale, levelChoices, label } = state.trainingParams || {};
 
@@ -42,9 +42,6 @@ const TrainingListen = () => {
   const backToTonicRef = useRef(state.backToTonic);
   const timersRef = useRef<number[]>([]);
 
-  // -----------------------------------------------------------------
-
-  // --- التأثيرات الجانبية (Side Effects) تبقى كما هي ---
   useEffect(() => {
     levelChoicesRef.current = levelChoices;
     backToTonicRef.current = state.backToTonic;
@@ -68,7 +65,6 @@ const TrainingListen = () => {
     }, [state.instrument, scale, levelChoices]) // أضفنا scale و levelChoices لضمان إعادة التشغيل عند توفرها
   );
 
-  // --- الخطوة 2: التحقق من البيانات قبل عرض واجهة المستخدم الرئيسية ---
   if (!scale || !levelChoices) {
     return (
       <View style={styles.loadingContainer}>
@@ -76,10 +72,7 @@ const TrainingListen = () => {
       </View>
     );
   }
-  // -----------------------------------------------------------------
 
-  // --- بقية منطق المكون الذي يعتمد على البيانات ---
-  // هذا الكود الآن آمن لأنه لا يتم الوصول إليه إلا إذا كانت scale و levelChoices موجودة
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const cadence = scalesLists[selectedScale as Maqam];
   let keyLables = cadence.map((key) => {
@@ -98,13 +91,16 @@ const TrainingListen = () => {
 
   const playTone = async (
     note: string,
-    duration: number = 1000
+    chord: boolean = false
   ): Promise<void> => {
-    // ... (الدالة تبقى كما هي)
     return new Promise(async (resolve) => {
       try {
-        const soundName = note.toLowerCase();
-        const folder = soundFolders[state.instrument];
+        const soundName = !chord ? note.toLowerCase() : note;
+
+        const folder = !chord
+          ? soundFolders[state.instrument]
+          : chordsFolders[state.instrument];
+
         if (!folder) return resolve();
 
         const soundModule = folder(`./${soundName}.mp3`);
@@ -135,7 +131,9 @@ const TrainingListen = () => {
       return;
 
     if (playChords) {
-      await playTone("cords");
+      const chordName = `${scale}_chord`;
+      console.log("Playing chord:", chordName);
+      await playTone(chordName, true);
     }
 
     const randomTone =
@@ -144,8 +142,8 @@ const TrainingListen = () => {
       ];
 
     try {
-      await playTone(randomTone, 2000);
-      addTimer(setTimeout(() => handleGuess(randomTone), 500));
+      await playTone(randomTone);
+      addTimer(setTimeout(() => handleGuess(randomTone), 1000));
     } catch (error) {
       console.log("Error in playRandomTone loop:", error);
     }
@@ -163,13 +161,12 @@ const TrainingListen = () => {
     for (let i = startIndex; i !== loopEnd; i += step) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone, 400);
+      await playTone(tone);
     }
     setButtonColors({});
   };
 
   const handleGuess = async (guess: string) => {
-    // ... (الدالة تبقى كما هي)
     setButtonColors({ [guess]: "green" });
     addTimer(setTimeout(() => setButtonColors({}), 500));
 
@@ -188,10 +185,9 @@ const TrainingListen = () => {
       }
     }
 
-    addTimer(setTimeout(playRandomTone, 500));
+    addTimer(setTimeout(playRandomTone, 1000));
   };
 
-  // --- الخطوة 3: عرض واجهة المستخدم الرئيسية ---
   return (
     <View style={styles.mainContainer}>
       <View style={styles.leveContainer}>

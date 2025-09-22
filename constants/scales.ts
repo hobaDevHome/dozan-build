@@ -177,10 +177,24 @@ export const dictationOudSounds = require.context(
   false,
   /\.mp3$/
 );
+export const pianoChordsSounds = require.context(
+  "../assets/sounds/piano/chords",
+  false,
+  /\.mp3$/
+);
+export const oudChordsSounds = require.context(
+  "../assets/sounds/oud/chords",
+  false,
+  /\.mp3$/
+);
 
 export const soundFolders: { [key: string]: RequireContext } = {
   piano: pianoSounds,
   oud: oudSounds,
+};
+export const chordsFolders: { [key: string]: RequireContext } = {
+  piano: pianoChordsSounds,
+  oud: oudChordsSounds,
 };
 export const maqamsSoundFolders: { [key: string]: RequireContext } = {
   piano: maqamsPianoSounds,
