@@ -175,7 +175,7 @@ const TrainingPlay = () => {
         await soundObject.playAsync();
 
         // الأهم: جدولة إيقاف الصوت بعد المدة المحددة
-        const timer = setTimeout(async () => {
+        setTimeout(async () => {
           if (soundRef.current === soundObject) {
             // تأكد من أننا نوقف الصوت الصحيح
             await soundObject.stopAsync().catch(() => {});
@@ -186,7 +186,6 @@ const TrainingPlay = () => {
         }, duration);
 
         // تسجيل المؤقت لإلغائه عند الخروج من الشاشة
-        addTimer(timer);
       } catch (error) {
         console.error("Error playing quick tone:", error);
         resolve(); // تأكد من إنهاء الـ Promise حتى في حالة الخطأ
@@ -194,6 +193,7 @@ const TrainingPlay = () => {
     });
   };
   const playRandomTone = async () => {
+    console.log("isplaying in playRandomTone", isPlaying);
     setFeedbackMessage("");
     setCanGuess(true);
     setFirstAttempt(true);
@@ -227,6 +227,7 @@ const TrainingPlay = () => {
       // await playTone(tone, 100);
       await playQuickTone(tone, 400);
     }
+
     setButtonColors({});
   };
 
@@ -269,7 +270,11 @@ const TrainingPlay = () => {
         await playTone(lowerCaseGuess);
       }
 
+      setIsPlaying(false);
       if (state.autoQuestionJump) {
+        console.log("isplaying in auto jump condition", isPlaying);
+        console.log("Auto question jump enabled");
+
         setTimeout(() => {
           setQuestionNumber((prev) => prev + 1);
           playRandomTone();
@@ -391,7 +396,11 @@ const TrainingPlay = () => {
         <View style={styles.controlsContainer}>
           <TouchableOpacity
             style={[styles.controlButton, styles.nextButton]}
-            onPress={playRandomTone}
+            onPress={() => {
+              setQuestionNumber(questionNumber + 1);
+              setIsPlaying(false);
+              playRandomTone();
+            }}
             disabled={isPlaying}
           >
             <Ionicons
