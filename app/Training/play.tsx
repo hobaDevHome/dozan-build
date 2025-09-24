@@ -225,7 +225,7 @@ const TrainingPlay = () => {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
       // await playTone(tone, 100);
-      await playQuickTone(tone, 400);
+      await playQuickTone(tone, 600);
     }
 
     setButtonColors({});
@@ -237,7 +237,7 @@ const TrainingPlay = () => {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
       // await playTone(tone, 100);
-      await playQuickTone(tone, 400);
+      await playQuickTone(tone, 600);
     }
     setButtonColors({});
   };
