@@ -354,10 +354,6 @@ const TrainingPlay = () => {
           }
           style={styles.maqamScaleImage}
         />
-        {/* <Image
-          source={require("@/assets/images/scales/agam.png")}
-          style={styles.maqamScaleImage}
-        /> */}
       </View>
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
