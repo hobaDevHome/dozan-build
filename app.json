@@ -22,7 +22,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#652eb6"
+        "backgroundColor": "#cddae2"
       },
       "package": "com.hobaexpoaccount.dozan",
       "versionCode": 3,
@@ -43,7 +43,7 @@
 
           "resizeMode": "contain",
 
-          "backgroundColor": "#652eb6"
+          "backgroundColor": "#cddae2"
         }
       ],
       "expo-asset",
