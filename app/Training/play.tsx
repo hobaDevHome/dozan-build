@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Switch,
+  Image,
+} from "react-native";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -22,6 +29,17 @@ type Maqam =
   | "Sika"
   | "Hegaz"
   | "Kurd";
+
+const maqamImages = {
+  agam: require("@/assets/images/scales/agam.png"),
+  rast: require("@/assets/images/scales/rast.png"),
+  bayaty: require("@/assets/images/scales/bayaty.png"),
+  nahawand: require("@/assets/images/scales/nahawand.png"),
+  saba: require("@/assets/images/scales/saba.png"),
+  sika: require("@/assets/images/scales/sika.png"),
+  hegaz: require("@/assets/images/scales/hegaz.png"),
+  kurd: require("@/assets/images/scales/kurd.png"),
+};
 
 const TrainingPlay = () => {
   const { state } = useSettings();
@@ -53,14 +71,16 @@ const TrainingPlay = () => {
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const levelLabels = state.labels.introGamePage.levelPage;
   const cadence = scalesLists[selectedScale as Maqam];
-  let keyLables = cadence.map((key) => {
-    let keyName1 = key.charAt(0).toUpperCase() + key.slice(1);
-    let keyName2 = keyName1.split("_")[0];
-    if (keyName2.length > 2 && keyName2 !== "Sol") {
-      keyName2 = keyName2.slice(0, 2);
-    }
-    return keyName2;
-  });
+  let keyLables = cadence
+    ? cadence.map((key) => {
+        let keyName1 = key.charAt(0).toUpperCase() + key.slice(1);
+        let keyName2 = keyName1.split("_")[0];
+        if (keyName2.length > 2 && keyName2 !== "Sol") {
+          keyName2 = keyName2.slice(0, 2);
+        }
+        return keyName2;
+      })
+    : [];
   let currentKeyMap = tonesLables[state.toneLabel as keyof typeof tonesLables];
 
   // ======================= الحل المركزي باستخدام useFocusEffect =======================
@@ -70,7 +90,7 @@ const TrainingPlay = () => {
       // أو في كل مرة يتغير فيها المقام الذي اخترته
 
       // للتأكد 100%، أضف هذا السطر في البداية
-      console.log("useFocusEffect is running! Scale is:", scale);
+      //console.log("useFocusEffect is running! Scale is:", scale);
 
       // إعادة ضبط الحالة والبدء
       setFeedbackMessage("");
@@ -88,7 +108,7 @@ const TrainingPlay = () => {
       // --- دالة التنظيف (Cleanup Function) ---
       // هذه الدالة ستعمل عند الخروج من الشاشة
       return () => {
-        console.log("Cleaning up the screen..."); // للتأكد من أن التنظيف يعمل
+        //     console.log("Cleaning up the screen..."); // للتأكد من أن التنظيف يعمل
         setIsPlaying(false);
         // إيقاف وتفريغ كل الأصوات النشطة
         if (soundRef.current) {
@@ -109,10 +129,6 @@ const TrainingPlay = () => {
     }, [state.trainingParams]) // <-- التعديل الأهم: أضفنا الاعتمادية هنا
   );
   // ======================= نهاية الحل =======================
-
-  const addTimer = (timer: NodeJS.Timeout) => {
-    timersRef.current.push(timer);
-  };
 
   const playTone = async (
     note: string,
@@ -193,17 +209,17 @@ const TrainingPlay = () => {
     });
   };
   const playRandomTone = async () => {
-    console.log("isplaying in playRandomTone", isPlaying);
+    // console.log("isplaying in playRandomTone", isPlaying);
     setFeedbackMessage("");
     setCanGuess(true);
     setFirstAttempt(true);
     if (isPlaying) return;
 
     setIsPlaying(true);
-    console.log("playchords", playChords);
+    //  console.log("playchords", playChords);
     if (playChords) {
       const chordName = `${scale}_chord`;
-      console.log("Playing chord:", chordName);
+      //   console.log("Playing chord:", chordName);
       await playTone(chordName, 1500, true);
     }
 
@@ -272,8 +288,8 @@ const TrainingPlay = () => {
 
       setIsPlaying(false);
       if (state.autoQuestionJump) {
-        console.log("isplaying in auto jump condition", isPlaying);
-        console.log("Auto question jump enabled");
+        // console.log("isplaying in auto jump condition", isPlaying);
+        // console.log("Auto question jump enabled");
 
         setTimeout(() => {
           setQuestionNumber((prev) => prev + 1);
@@ -319,7 +335,7 @@ const TrainingPlay = () => {
       });
     } catch (error) {}
   };
-
+  // console.log("Rendering TrainingPlay component", scale, cadence);
   return (
     <View style={styles.mainContainer}>
       <View style={styles.tilteContainer}>
@@ -330,6 +346,18 @@ const TrainingPlay = () => {
             ]
           }
         </Text>
+      </View>
+      <View style={styles.scaleImageContainer}>
+        <Image
+          source={
+            maqamImages[scale.toLocaleLowerCase() as keyof typeof maqamImages]
+          }
+          style={styles.maqamScaleImage}
+        />
+        {/* <Image
+          source={require("@/assets/images/scales/agam.png")}
+          style={styles.maqamScaleImage}
+        /> */}
       </View>
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
@@ -363,31 +391,34 @@ const TrainingPlay = () => {
 
       <View style={styles.leveContainer}>
         <View style={styles.buttonsContainer}>
-          {cadence.map((tone: string, i: number) => (
-            <TouchableOpacity
-              key={tone}
-              style={[styles.toneButton]}
-              onPress={() => handleGuess(tone)}
-              disabled={!levelChoicesRef.current.includes(tone.toLowerCase())}
-            >
-              <View
-                style={[
-                  styles.toneButtonTextBox,
-                  !levelChoicesRef.current.includes(tone.toLowerCase())
-                    ? styles.dimmed
-                    : null,
-                  buttonColors[tone] === "green" && styles.correctButton,
-                  buttonColors[tone] === "red" && styles.incorrectButton,
-                ]}
+          {cadence &&
+            cadence.map((tone: string, i: number) => (
+              <TouchableOpacity
+                key={tone}
+                style={[styles.toneButton]}
+                onPress={() => handleGuess(tone)}
+                disabled={!levelChoicesRef.current.includes(tone.toLowerCase())}
               >
-                <Text style={styles.toneButtonText}>
-                  {state.language == "ar"
-                    ? keysMap[keyLables[i] as keyof typeof keysMap]
-                    : currentKeyMap[keyLables[i] as keyof typeof currentKeyMap]}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View
+                  style={[
+                    styles.toneButtonTextBox,
+                    !levelChoicesRef.current.includes(tone.toLowerCase())
+                      ? styles.dimmed
+                      : null,
+                    buttonColors[tone] === "green" && styles.correctButton,
+                    buttonColors[tone] === "red" && styles.incorrectButton,
+                  ]}
+                >
+                  <Text style={styles.toneButtonText}>
+                    {state.language == "ar"
+                      ? keysMap[keyLables[i] as keyof typeof keysMap]
+                      : currentKeyMap[
+                          keyLables[i] as keyof typeof currentKeyMap
+                        ]}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
         </View>
         {feedbackMessage !== "" && (
           <Text style={styles.feedbackText}>{feedbackMessage}</Text>
@@ -657,6 +688,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "600",
+  },
+  scaleImageContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    border: "1px solid #ddd",
+    marginTop: 10,
+    width: "90%",
+    alignSelf: "center",
+  },
+  maqamScaleImage: {
+    width: 300, // يمكنك تعديل العرض حسب رغبتك
+    height: 100, // يمكنك تعديل الارتفاع حسب رغبتك
+    resizeMode: "contain", // للحفاظ على أبعاد الصورة
+    marginTop: 10, // لإضافة مسافة بين العنوان والصورة
   },
 });
 
