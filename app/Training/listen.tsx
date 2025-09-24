@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -13,6 +14,7 @@ import {
   chordsFolders,
   keysMap,
   tonesLables,
+  maqamImages,
 } from "@/constants/scales";
 import { useSettings } from "@/context/SettingsContext";
 import { Audio } from "expo-av";
@@ -200,6 +202,14 @@ const TrainingListen = () => {
             }
           </Text>
         </View>
+        <View style={styles.scaleImageContainer}>
+          <Image
+            source={
+              maqamImages[scale.toLocaleLowerCase() as keyof typeof maqamImages]
+            }
+            style={styles.maqamScaleImage}
+          />
+        </View>
         <View style={styles.intro}>
           <Ionicons
             name="musical-notes"
@@ -343,6 +353,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "600",
+  },
+  scaleImageContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    marginTop: 10,
+    width: "90%",
+    alignSelf: "center",
+  },
+  maqamScaleImage: {
+    width: 300,
+    height: 100,
+    resizeMode: "contain",
+    marginTop: 10,
   },
 });
 

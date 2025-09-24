@@ -9,6 +9,17 @@ export type Maqam =
   | "Hegaz"
   | "Kurd";
 
+export const maqamImages = {
+  agam: require("@/assets/images/scales/agam.png"),
+  rast: require("@/assets/images/scales/rast.png"),
+  bayaty: require("@/assets/images/scales/bayaty.png"),
+  nahawand: require("@/assets/images/scales/nahawand.png"),
+  saba: require("@/assets/images/scales/saba.png"),
+  sika: require("@/assets/images/scales/sika.png"),
+  hegaz: require("@/assets/images/scales/hegaz.png"),
+  kurd: require("@/assets/images/scales/kurd.png"),
+};
+
 export const keysMap = {
   Do: "دو",
   Re: "ري",

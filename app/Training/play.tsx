@@ -15,6 +15,7 @@ import {
   tonesLables,
   chordsFolders,
   maqamsSoundFolders,
+  maqamImages,
 } from "@/constants/scales";
 import { useSettings } from "@/context/SettingsContext";
 import { Audio } from "expo-av";
@@ -29,17 +30,6 @@ type Maqam =
   | "Sika"
   | "Hegaz"
   | "Kurd";
-
-const maqamImages = {
-  agam: require("@/assets/images/scales/agam.png"),
-  rast: require("@/assets/images/scales/rast.png"),
-  bayaty: require("@/assets/images/scales/bayaty.png"),
-  nahawand: require("@/assets/images/scales/nahawand.png"),
-  saba: require("@/assets/images/scales/saba.png"),
-  sika: require("@/assets/images/scales/sika.png"),
-  hegaz: require("@/assets/images/scales/hegaz.png"),
-  kurd: require("@/assets/images/scales/kurd.png"),
-};
 
 const TrainingPlay = () => {
   const { state } = useSettings();
@@ -688,16 +678,18 @@ const styles = StyleSheet.create({
   scaleImageContainer: {
     justifyContent: "center",
     alignItems: "center",
-    border: "1px solid #ddd",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
     marginTop: 10,
     width: "90%",
     alignSelf: "center",
   },
   maqamScaleImage: {
-    width: 300, // يمكنك تعديل العرض حسب رغبتك
-    height: 100, // يمكنك تعديل الارتفاع حسب رغبتك
-    resizeMode: "contain", // للحفاظ على أبعاد الصورة
-    marginTop: 10, // لإضافة مسافة بين العنوان والصورة
+    width: 300,
+    height: 100,
+    resizeMode: "contain",
+    marginTop: 10,
   },
 });
 
