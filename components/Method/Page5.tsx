@@ -14,7 +14,7 @@ const Page5 = () => {
 
       <View style={styles.scaleImageContainer}>
         <Image
-          source={require("@/assets/images/scales/methodScales/agam_ar.png")}
+          source={require("@/assets/images/scales/methodScales/saba_ar.png")}
           style={styles.maqamScaleImage}
         />
       </View>
