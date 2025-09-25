@@ -24,24 +24,8 @@ const Page3 = () => {
 
       {/* sec3 */}
       <Text style={styles.highlight}>{labels.sec3}</Text>
-
       {/* sec4*/}
       <Text style={styles.text}>{labels.sec4}</Text>
-
-      {/* sec5*/}
-      <Text style={styles.text}>{labels.sec5}</Text>
-
-      {/* sec6 */}
-      <Text style={styles.highlight}>{labels.sec6}</Text>
-
-      {/* sec7*/}
-      <Text style={styles.text}>{labels.sec7}</Text>
-
-      {/* sec7*/}
-      <Text style={styles.text}>{labels.sec8}</Text>
-
-      {/* sec9 */}
-      <Text style={styles.highlight}>{labels.sec9}</Text>
     </View>
   );
 };

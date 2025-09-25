@@ -2,9 +2,9 @@ import { View, Text, StyleSheet, Image } from "react-native";
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
 
-const Page4 = () => {
+const Page11 = () => {
   const { state } = useSettings();
-  const labels = state.labels.metodTextPage4;
+  const labels = state.labels.metodTextPage11;
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
@@ -14,11 +14,10 @@ const Page4 = () => {
       <Text style={styles.text}>{labels.sec1}</Text>
       <View style={styles.scaleImageContainer}>
         <Image
-          source={require("@/assets/images/scales/methodScales/agam_ar.png")}
+          source={require("@/assets/images/scales/methodScales/rast_ar.png")}
           style={styles.maqamScaleImage}
         />
       </View>
-
       {/* sec2 */}
       <Text style={styles.text}>{labels.sec2}</Text>
     </View>
@@ -95,4 +94,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Page4;
+export default Page11;
