@@ -5,13 +5,24 @@ import { useSettings } from "../../context/SettingsContext";
 const Page4 = () => {
   const { state } = useSettings();
   const labels = state.labels.metodTextPage4;
+
+  // تحديد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
+  const isRTL = state.language === "ar" || state.language === "fa";
+
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text style={styles.subtitle}>{labels.title}</Text>
+      <Text
+        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.title}
+      </Text>
 
       {/* sec1 */}
-      <Text style={styles.text}>{labels.sec1}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec1}
+      </Text>
+
       <View style={styles.scaleImageContainer}>
         <Image
           source={require("@/assets/images/scales/methodScales/agam_ar.png")}
@@ -20,7 +31,9 @@ const Page4 = () => {
       </View>
 
       {/* sec2 */}
-      <Text style={styles.text}>{labels.sec2}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec2}
+      </Text>
     </View>
   );
 };
@@ -45,14 +58,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 32,
     color: "#24b896",
-
     marginBottom: 10,
     marginTop: 20,
   },
   text: {
     fontSize: 16,
     color: "#000",
-
     marginBottom: 20,
   },
   blueText: {

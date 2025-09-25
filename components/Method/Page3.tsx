@@ -11,21 +11,40 @@ import { useSettings } from "../../context/SettingsContext";
 const Page3 = () => {
   const { state, dispatch } = useSettings();
   const labels = state.labels.metodTextPage3;
+
+  // تحديد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
+  const isRTL = state.language === "ar" || state.language === "fa";
+
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text style={styles.subtitle}>{labels.title}</Text>
+      <Text
+        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.title}
+      </Text>
 
       {/* sec1 */}
-      <Text style={styles.text}>{labels.sec1}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec1}
+      </Text>
 
       {/* sec2 */}
-      <Text style={styles.text}>{labels.sec2}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec2}
+      </Text>
 
       {/* sec3 */}
-      <Text style={styles.highlight}>{labels.sec3}</Text>
+      <Text
+        style={[styles.highlight, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.sec3}
+      </Text>
+
       {/* sec4*/}
-      <Text style={styles.text}>{labels.sec4}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec4}
+      </Text>
     </View>
   );
 };

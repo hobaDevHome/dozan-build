@@ -1,48 +1,63 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
 
 const Page1 = () => {
-  const { state, dispatch } = useSettings();
+  const { state } = useSettings();
   const labels = state.labels.metodTextPage1;
+
+  // هنا بنحدد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
+  const isRTL = state.language === "ar" || state.language === "fa";
+
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text style={styles.subtitle}>{labels.title}</Text>
+      {/* هنا بنضيف الـ style بشكل شرطي */}
+      <Text
+        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.title}
+      </Text>
 
       {/* sec1 */}
-      <Text style={styles.text}>{labels.sec1}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec1}
+      </Text>
 
       {/* sec2 */}
-      <Text style={styles.text}>{labels.sec2}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec2}
+      </Text>
 
       {/* sec3 */}
-      <Text style={styles.text}>{labels.sec3}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec3}
+      </Text>
 
       {/* sec4*/}
-      <Text style={styles.text}>{labels.sec4}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec4}
+      </Text>
 
       {/* sec5 */}
-      <Text style={styles.blueText}>{labels.sec5}</Text>
+      <Text
+        style={[styles.blueText, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.sec5}
+      </Text>
 
       {/* sec6- sapn - sec6 */}
-      <Text style={styles.text}>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec6span}</Text>{" "}
         {labels.sec6}
       </Text>
       {/* sec7- sapn - sec7 */}
-      <Text style={styles.text}>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec7span}</Text>{" "}
         {labels.sec7}
       </Text>
       {/* sec8- sapn - sec8 */}
-      <Text style={styles.text}>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec8span}</Text>{" "}
         {labels.sec8}
       </Text>
@@ -70,15 +85,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 32,
     color: "#24b896",
-
     marginBottom: 10,
     marginTop: 20,
+    // textAlign: 'left' // ممكن تشيل دي أو تخليها left عشان تضمن محاذاة النص صح مع اتجاه الكتابة
   },
   text: {
     fontSize: 16,
     color: "#000",
-
     marginBottom: 20,
+    // textAlign: 'left'
   },
   blueText: {
     color: "#24b896",

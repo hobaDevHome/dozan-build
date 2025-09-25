@@ -5,22 +5,32 @@ import { useSettings } from "../../context/SettingsContext";
 const Page6 = () => {
   const { state } = useSettings();
   const labels = state.labels.metodTextPage6;
+  const isRTL = state.language === "ar" || state.language === "fa";
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text style={styles.subtitle}>{labels.title}</Text>
+      <Text
+        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
+      >
+        {labels.title}
+      </Text>
 
       {/* sec1 */}
-      <Text style={styles.text}>{labels.sec1}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec1}
+      </Text>
+
       <View style={styles.scaleImageContainer}>
         <Image
-          source={require("@/assets/images/scales/methodScales/rast_ar.png")}
+          source={require("@/assets/images/scales/methodScales/agam_ar.png")}
           style={styles.maqamScaleImage}
         />
       </View>
 
       {/* sec2 */}
-      <Text style={styles.text}>{labels.sec2}</Text>
+      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
+        {labels.sec2}
+      </Text>
     </View>
   );
 };
