@@ -1,9 +1,9 @@
 {
   "expo": {
     "privacy": "public",
-    "name": "Dozan",
-    "slug": "Dozan",
-    "version": "3.0.0",
+    "name": "Maqami",
+    "slug": "Maqami",
+    "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -14,7 +14,7 @@
       "runtimeVersion": {
         "policy": "appVersion"
       },
-      "bundleIdentifier": "com.hobaexpoaccount.dozan",
+      "bundleIdentifier": "com.hobaexpoaccount.maqami",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,9 +25,9 @@
         "backgroundImage": "./assets/adaptive-icon-background.png",
         "backgroundColor": "#cddae2"
       },
-      "package": "com.hobaexpoaccount.dozan",
+      "package": "com.hobaexpoaccount.maqami",
       "versionCode": 3,
-      "runtimeVersion": "3.0.0",
+      "runtimeVersion": "4.0.0",
       "permissions": []
     },
     "web": {
