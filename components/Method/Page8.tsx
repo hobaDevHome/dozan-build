@@ -82,14 +82,14 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 12,
     marginTop: 10,
-    width: "90%",
+    marginBottom: 15,
+    width: "95%",
     alignSelf: "center",
   },
   maqamScaleImage: {
-    width: 300,
+    width: "100%",
     height: 100,
     resizeMode: "contain",
-    marginTop: 10,
   },
 });
 
