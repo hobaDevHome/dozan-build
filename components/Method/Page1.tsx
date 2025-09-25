@@ -1,61 +1,38 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TextStyle } from "react-native";
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
+import AppText from "../ui/AppText";
 
 const Page1 = () => {
   const { state } = useSettings();
   const labels = state.labels.metodTextPage1;
 
-  // تحديد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
-  const isRTL = state.language === "ar" || state.language === "fa";
-
-  // إنشاء كائن style ديناميكي بناءً على اللغة
-  // هذا سيضيف اتجاه الكتابة والمحاذاة الصحيحة
-  const directionStyle = {
-    writingDirection: isRTL ? "rtl" : "ltr",
-    textAlign: isRTL ? "right" : "left",
-  };
-
   return (
     <View style={{ flex: 1 }}>
-      {/* title  */}
-      {/* العناوين التي لها textAlign: 'center' لا تحتاج لتغيير المحاذاة */}
-      <Text
-        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
-      >
-        {labels.title}
-      </Text>
+      <AppText style={styles.subtitle}>{labels.title}</AppText>
 
-      {/* sec1 */}
-      <Text style={[styles.text, directionStyle]}>{labels.sec1}</Text>
+      <AppText style={styles.text}>{labels.sec1}</AppText>
 
-      {/* sec2 */}
-      <Text style={[styles.text, directionStyle]}>{labels.sec2}</Text>
+      <AppText style={styles.text}>{labels.sec2}</AppText>
 
-      {/* sec3 */}
-      <Text style={[styles.text, directionStyle]}>{labels.sec3}</Text>
+      <AppText style={styles.text}>{labels.sec3}</AppText>
 
-      {/* sec4*/}
-      <Text style={[styles.text, directionStyle]}>{labels.sec4}</Text>
+      <AppText style={styles.text}>{labels.sec4}</AppText>
 
-      {/* sec5 */}
-      <Text style={[styles.blueText, directionStyle]}>{labels.sec5}</Text>
+      <AppText style={styles.blueText}>{labels.sec5}</AppText>
 
-      {/* sec6- sapn - sec6 */}
-      <Text style={[styles.text, directionStyle]}>
+      <AppText style={styles.text}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec6span}</Text>{" "}
         {labels.sec6}
-      </Text>
-      {/* sec7- sapn - sec7 */}
-      <Text style={[styles.text, directionStyle]}>
+      </AppText>
+      <AppText style={styles.text}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec7span}</Text>{" "}
         {labels.sec7}
-      </Text>
-      {/* sec8- sapn - sec8 */}
-      <Text style={[styles.text, directionStyle]}>
+      </AppText>
+      <AppText style={styles.text}>
         <Text style={{ fontWeight: "bold" }}>{labels.sec8span}</Text>{" "}
         {labels.sec8}
-      </Text>
+      </AppText>
     </View>
   );
 };
@@ -82,8 +59,6 @@ const styles = StyleSheet.create({
     color: "#24b896",
     marginBottom: 10,
     marginTop: 20,
-    // بما أن هذا العنوان الرئيسي قد يكون في المنتصف أو يبدأ من طرف الشاشة،
-    // يمكن إضافة textAlign: 'center' هنا إذا أردت أن يكون في المنتصف دائماً
   },
   text: {
     fontSize: 16,

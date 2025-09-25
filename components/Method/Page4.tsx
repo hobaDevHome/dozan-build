@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TextStyle } from "react-native"; // تمت إضافة TextStyle
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
 
@@ -6,22 +6,21 @@ const Page4 = () => {
   const { state } = useSettings();
   const labels = state.labels.metodTextPage4;
 
-  // تحديد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
   const isRTL = state.language === "ar" || state.language === "fa";
+
+  // كائن الـ style الديناميكي الذي يحل كل المشاكل
+  const dynamicStyle: TextStyle = {
+    writingDirection: isRTL ? "rtl" : "ltr",
+    textAlign: isRTL ? "right" : "left",
+  };
 
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text
-        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
-      >
-        {labels.title}
-      </Text>
+      <Text style={[styles.subtitle, dynamicStyle]}>{labels.title}</Text>
 
       {/* sec1 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec1}
-      </Text>
+      <Text style={[styles.text, dynamicStyle]}>{labels.sec1}</Text>
 
       <View style={styles.scaleImageContainer}>
         <Image
@@ -31,9 +30,7 @@ const Page4 = () => {
       </View>
 
       {/* sec2 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec2}
-      </Text>
+      <Text style={[styles.text, dynamicStyle]}>{labels.sec2}</Text>
     </View>
   );
 };

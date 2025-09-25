@@ -1,35 +1,34 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet, TextStyle } from "react-native"; // تمت إضافة TextStyle
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
 
 const Page2 = () => {
-  const { state, dispatch } = useSettings();
+  const { state } = useSettings(); // لم نعد بحاجة إلى dispatch هنا
   const labels = state.labels.metodTextPage2;
 
-  // تحديد إذا كانت اللغة الحالية تتطلب اتجاه من اليمين لليسار
   const isRTL = state.language === "ar" || state.language === "fa";
+
+  // كائن الـ style الديناميكي الذي يحل كل المشاكل
+  const dynamicStyle: TextStyle = {
+    writingDirection: isRTL ? "rtl" : "ltr",
+    textAlign: isRTL ? "right" : "left",
+  };
 
   return (
     <View style={{ flex: 1 }}>
       {/* title  */}
-      <Text
-        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
-      >
-        {labels.title}
-      </Text>
+      <Text style={[styles.subtitle, dynamicStyle]}>{labels.title}</Text>
 
       {/* sec1 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec1}
-      </Text>
+      <Text style={[styles.text, dynamicStyle]}>{labels.sec1}</Text>
 
       {/* sec2 */}
+      {/* 
+        العنصر highlight له textAlign: 'center' في الـ style الأساسي.
+        إذا أردت أن يبقى في المنتصف دائماً، لا تطبق عليه dynamicStyle.
+        إذا أردت أن تتم محاذاته لليمين/اليسار، قم بتطبيق dynamicStyle واحذف textAlign: 'center' من styles.highlight.
+        سأفترض أنك تريده أن يبقى في المنتصف.
+      */}
       <Text
         style={[styles.highlight, { writingDirection: isRTL ? "rtl" : "ltr" }]}
       >
@@ -37,14 +36,10 @@ const Page2 = () => {
       </Text>
 
       {/* sec3 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec3}
-      </Text>
+      <Text style={[styles.text, dynamicStyle]}>{labels.sec3}</Text>
 
       {/* sec4*/}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec4}
-      </Text>
+      <Text style={[styles.text, dynamicStyle]}>{labels.sec4}</Text>
     </View>
   );
 };
@@ -69,14 +64,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 32,
     color: "#24b896",
-
     marginBottom: 10,
     marginTop: 20,
   },
   text: {
     fontSize: 16,
     color: "#000",
-
     marginBottom: 20,
   },
   blueText: {
@@ -97,7 +90,7 @@ const styles = StyleSheet.create({
   },
   highlight: {
     backgroundColor: "#ebf9fc",
-    textAlign: "center",
+    textAlign: "center", // هذا النمط سيجعل النص في المنتصف
     padding: 15,
     margin: 20,
   },
