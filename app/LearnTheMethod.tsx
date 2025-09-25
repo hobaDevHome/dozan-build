@@ -97,18 +97,21 @@ const LearnTheMethod = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#fff",
   },
   slide: {
-    width: ITEM_WIDTH,
+    width: ITEM_WIDTH - 20,
     height: SLIDER_HEIGHT - DOTS_HEIGHT,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 8,
-    padding: 20,
-    marginHorizontal: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 0,
+
+    marginLeft: 10,
+    marginRight: 15,
   },
   title: {
     fontSize: 24,
@@ -130,6 +133,7 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     marginHorizontal: 5,
+    marginTop: 10,
   },
   activeDot: {
     backgroundColor: "#007bff",

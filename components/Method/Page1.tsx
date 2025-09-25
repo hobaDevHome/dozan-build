@@ -39,14 +39,6 @@ const Page1 = () => {
 
 // Styles
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-    flex: 1,
-  },
   title: {
     fontSize: 28,
     fontWeight: "bold",
