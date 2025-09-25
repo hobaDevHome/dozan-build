@@ -1,40 +1,26 @@
 import { View, Text, StyleSheet, TextStyle } from "react-native"; // تمت إضافة TextStyle
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
+import AppText from "../ui/AppText";
 
 const Page3 = () => {
   const { state } = useSettings(); // لم نعد بحاجة إلى dispatch
   const labels = state.labels.metodTextPage3;
 
-  const isRTL = state.language === "ar" || state.language === "fa";
-
-  // كائن الـ style الديناميكي الذي يحل كل المشاكل
-  const dynamicStyle: TextStyle = {
-    writingDirection: isRTL ? "rtl" : "ltr",
-    textAlign: isRTL ? "right" : "left",
-  };
-
   return (
     <View style={{ flex: 1 }}>
-      {/* title  */}
-      <Text style={[styles.subtitle, dynamicStyle]}>{labels.title}</Text>
+      <AppText style={styles.subtitle}>{labels.title}</AppText>
 
       {/* sec1 */}
-      <Text style={[styles.text, dynamicStyle]}>{labels.sec1}</Text>
+      <AppText style={styles.text}>{labels.sec1}</AppText>
 
       {/* sec2 */}
-      <Text style={[styles.text, dynamicStyle]}>{labels.sec2}</Text>
+      <AppText style={styles.text}>{labels.sec2}</AppText>
 
-      {/* sec3 */}
-      {/* هذا العنصر سيبقى في المنتصف بناءً على طلبك */}
-      <Text
-        style={[styles.highlight, { writingDirection: isRTL ? "rtl" : "ltr" }]}
-      >
-        {labels.sec3}
-      </Text>
+      <AppText style={styles.highlight}>{labels.sec3}</AppText>
 
       {/* sec4*/}
-      <Text style={[styles.text, dynamicStyle]}>{labels.sec4}</Text>
+      <AppText style={styles.text}>{labels.sec4}</AppText>
     </View>
   );
 };

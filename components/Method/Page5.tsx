@@ -1,24 +1,16 @@
 import { View, Text, StyleSheet, Image } from "react-native";
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
+import AppText from "../ui/AppText";
 
 const Page5 = () => {
   const { state } = useSettings();
   const labels = state.labels.metodTextPage5;
-  const isRTL = state.language === "ar" || state.language === "fa";
+
   return (
     <View style={{ flex: 1 }}>
-      {/* title  */}
-      <Text
-        style={[styles.subtitle, { writingDirection: isRTL ? "rtl" : "ltr" }]}
-      >
-        {labels.title}
-      </Text>
-
-      {/* sec1 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec1}
-      </Text>
+      <AppText style={styles.subtitle}>{labels.title}</AppText>
+      <AppText style={styles.text}>{labels.sec1}</AppText>
 
       <View style={styles.scaleImageContainer}>
         <Image
@@ -26,11 +18,7 @@ const Page5 = () => {
           style={styles.maqamScaleImage}
         />
       </View>
-
-      {/* sec2 */}
-      <Text style={[styles.text, { writingDirection: isRTL ? "rtl" : "ltr" }]}>
-        {labels.sec2}
-      </Text>
+      <AppText style={styles.text}>{labels.sec2}</AppText>
     </View>
   );
 };
