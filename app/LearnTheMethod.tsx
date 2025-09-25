@@ -14,6 +14,11 @@ import Page3 from "../components/Method/Page3";
 import Page4 from "../components/Method/Page4";
 import Page5 from "../components/Method/Page5";
 import Page6 from "../components/Method/Page6";
+import Page10 from "@/components/Method/Page10";
+import Page11 from "@/components/Method/Page11";
+import Page9 from "@/components/Method/Page9";
+import Page8 from "@/components/Method/Page8";
+import Page7 from "@/components/Method/Page7";
 
 const SLIDER_WIDTH = Dimensions.get("window").width;
 const SLIDER_HEIGHT = Dimensions.get("window").height;
@@ -27,11 +32,11 @@ const data = [
   { id: "4", component: Page4 },
   { id: "5", component: Page5 },
   { id: "6", component: Page6 },
-  { id: "7", component: Page6 },
-  { id: "8", component: Page6 },
-  { id: "9", component: Page6 },
-  { id: "10", component: Page6 },
-  { id: "11", component: Page6 },
+  { id: "7", component: Page7 },
+  { id: "8", component: Page8 },
+  { id: "9", component: Page9 },
+  { id: "10", component: Page10 },
+  { id: "11", component: Page11 },
 ];
 
 const LearnTheMethod = () => {
