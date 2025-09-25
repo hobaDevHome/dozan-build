@@ -1,13 +1,14 @@
+import React, { useState, useRef } from "react"; // <-- 1. استيراد الـ Hooks من 'react'
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-} from "react-native";
-import React, { useState, useRef, useEffect } from "react";
-import Carousel from "react-native-reanimated-carousel";
+} from "react-native"; // <-- 2. استيراد المكونات من 'react-native'
+import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
 
+// ... باقي المكونات (Page1, Page2, etc.)
 import Page1 from "../components/Method/Page1";
 import Page2 from "../components/Method/Page2";
 import Page3 from "../components/Method/Page3";
@@ -41,10 +42,9 @@ const data = [
 
 const LearnTheMethod = () => {
   const [activeSlide, setActiveSlide] = useState(0);
-  const carouselRef = useRef<any>(null);
+  const carouselRef = useRef<ICarouselInstance>(null);
 
   const renderItem = ({ item }: { item: (typeof data)[0] }) => {
-    // "Component" is a dynamic component
     const SlideContent = item.component;
     return (
       <View style={styles.slide}>
@@ -54,14 +54,20 @@ const LearnTheMethod = () => {
   };
 
   const handleDotPress = (index: number) => {
-    carouselRef.current?.snapToItem(index);
+    if (carouselRef.current) {
+      // استخدمنا scrollTo بدلاً من snapToItem
+      carouselRef.current.scrollTo({
+        count: index - activeSlide,
+        animated: true,
+      });
+    }
   };
 
   return (
     <View style={styles.container}>
       <Carousel
         ref={carouselRef}
-        loop={false} // Disable looping
+        loop={false}
         width={SLIDER_WIDTH}
         height={SLIDER_HEIGHT - DOTS_HEIGHT}
         autoPlay={false}
@@ -69,7 +75,6 @@ const LearnTheMethod = () => {
         scrollAnimationDuration={500}
         onSnapToItem={(index) => setActiveSlide(index)}
         renderItem={renderItem}
-        snapEnabled // to make it swipe properly and fix dots indicator
       />
 
       <View style={styles.paginationContainer}>
@@ -88,6 +93,7 @@ const LearnTheMethod = () => {
   );
 };
 
+// ... Styles (تبقى كما هي)
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -80,12 +80,11 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 12,
     marginTop: 10,
-    marginBottom: 15,
     width: "95%",
     alignSelf: "center",
   },
   maqamScaleImage: {
-    width: "100%",
+    width: 300,
     height: 100,
     resizeMode: "contain",
   },
