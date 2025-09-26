@@ -7,73 +7,75 @@ import {
 } from "react-native";
 import React from "react";
 import { useSettings } from "../../context/SettingsContext";
+import AppText from "@/components/ui/AppText";
 
 const Overview = () => {
   const { state, dispatch } = useSettings();
   const overviewLabels = state.labels.introGamePage.overViewPage;
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.subtitle}>{overviewLabels.header}</Text>
+      <AppText style={styles.subtitle}>{overviewLabels.header}</AppText>
       {/* sec1 */}
-      <Text style={[styles.text, { fontWeight: "bold" }]}>
+      <AppText style={[styles.text, { fontWeight: "bold" }]}>
         {overviewLabels.textSections.sec1}
-      </Text>
+      </AppText>
 
       {/* sec2 */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec2}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec2}</AppText>
 
       {/* sec3 */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec3}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec3}</AppText>
 
       {/* sec4 */}
 
-      <Text style={styles.text}>{overviewLabels.textSections.sec4}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec4}</AppText>
       {/* sec5  - sec 5 span*/}
-      <Text style={styles.text}>
-        <Text style={{ fontWeight: "bold" }}>
+      <AppText style={styles.text}>
+        <AppText style={{ fontWeight: "bold" }}>
           {overviewLabels.textSections.sec5span}
-        </Text>
+        </AppText>
         {overviewLabels.textSections.sec5}
-      </Text>
+      </AppText>
       {/* {/* se6/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec6}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec6}</AppText>
 
       {/* {/* sec7/} */}
-      <View style={styles.highlight}>
-        <Text style={styles.text}>{overviewLabels.textSections.sec7}</Text>
-      </View>
+      <AppText style={styles.highlight}>
+        <AppText style={[styles.text, { textAlign: "center" }]}>
+          {overviewLabels.textSections.sec7}
+        </AppText>
+      </AppText>
       {/* {/* sec8/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec8}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec8}</AppText>
 
       {/* {/* sec9 - sec9-span/} */}
-      <Text style={styles.text}>
-        <Text style={{ fontWeight: "bold" }}>
-          {" "}
+      <AppText style={styles.text}>
+        <AppText style={{ fontWeight: "bold" }}>
           {overviewLabels.textSections.sec9span}
-        </Text>{" "}
+        </AppText>
         {overviewLabels.textSections.sec9}
-      </Text>
+      </AppText>
       {/* {/* sec99/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec99}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec99}</AppText>
       {/* {/* sec10/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec10}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec10}</AppText>
 
       {/* {/* sec11 - sec11-span/} */}
-      <Text style={styles.text}>
-        <Text style={{ fontWeight: "bold" }}>
+      <AppText style={styles.text}>
+        <AppText style={{ fontWeight: "bold" }}>
           {" "}
           {overviewLabels.textSections.sec11span}
-        </Text>{" "}
+        </AppText>{" "}
         {overviewLabels.textSections.sec11}
-      </Text>
+      </AppText>
       {/* {/* sec12/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec12}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec12}</AppText>
       {/* {/* sec13/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec13}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec13}</AppText>
       {/* {/* sec14/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec14}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec14}</AppText>
       {/* {/* sec15/} */}
-      <Text style={styles.text}>{overviewLabels.textSections.sec15}</Text>
+      <AppText style={styles.text}>{overviewLabels.textSections.sec15}</AppText>
     </ScrollView>
   );
 };

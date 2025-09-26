@@ -1,4 +1,4 @@
-package com.hobaexpoaccount.dozan
+package com.hobaexpoaccount.maqami
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

@@ -20,6 +20,8 @@ const Page2 = () => {
 
       {/* sec4*/}
       <AppText style={styles.text}>{labels.sec4}</AppText>
+      <AppText style={styles.text}>{labels.sec5}</AppText>
+      <AppText style={styles.text}>{labels.sec6}</AppText>
     </View>
   );
 };

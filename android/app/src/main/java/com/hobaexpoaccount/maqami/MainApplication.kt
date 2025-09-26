@@ -1,4 +1,4 @@
-package com.hobaexpoaccount.dozan
+package com.hobaexpoaccount.maqami
 
 import android.app.Application
 import android.content.res.Configuration

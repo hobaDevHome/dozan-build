@@ -170,7 +170,7 @@ export default {
     },
   },
   metodTextPage1: {
-    title: "1. Introduction",
+    title: "Introduction",
     sec1: "As a musician, it is important to understand what you hear when listening to music. It's like when someone is speaking - you not only        hear the sound but also understand the words and phrases.",
     sec2: "A good musical ear also helps when you are composing, improvising, or playing with others.",
     sec3: "This app introduces a revolutionary ear training method discovered by Alain Benbassat. It is easy, effective, and works for everyone.",
@@ -184,14 +184,16 @@ export default {
     sec8: "does not matter (even if you don't play any instrument, this method is for you)",
   },
   metodTextPage2: {
-    title: "2. Notes and Intervals",
+    title: "Notes and Intervals",
     sec1: "In music, there are 12 notes:",
     sec2: "C, C#, D, D#, E, F, F#, G, G#, A, A#, B",
     sec3: "The interval between two adjacent notes is called a semitone (from C to C#, from C# to D, from D to D#, etc.).",
     sec4: "A tone is an interval of 2 semitones (from C to D, from C# to D#, from D to E, etc.).",
+    sec5: "In Eastern music, in addition to these notes, quarter tones are also used to form the unique oriental maqams",
+    sec6: "For example: from Do to Do half sharp (Do half♯) is considered a quarter tone, while from Do to Do♯ is considered a half tone.",
   },
   metodTextPage3: {
-    title: "3. Musical Maqams",
+    title: "Musical Maqams",
     sec1: "Musical maqams are the foundation and essence of Arabic music. They represent an integrated system of sounds and tones that harmonize together to form a unique musical identity.",
     sec2: "A maqam can be defined as a set of arranged pitches in a specific order, giving the melody its unique character and identity.",
     sec3: "A musical maqam is a scale of 8 notes, called a diwan or octave, starting from the low pitch (qarar) and ending at the high pitch (jawab).",

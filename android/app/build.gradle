@@ -87,13 +87,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.hobaexpoaccount.dozan'
+    namespace 'com.hobaexpoaccount.maqami'
     defaultConfig {
-        applicationId 'com.hobaexpoaccount.dozan'
+        applicationId 'com.hobaexpoaccount.maqami'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 3
-        versionName "3.0.0"
+        versionName "4.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

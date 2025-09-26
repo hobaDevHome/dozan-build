@@ -165,7 +165,7 @@ export default {
     },
   },
   metodTextPage1: {
-    title: "1. Giriş",
+    title: "Giriş",
     sec1: "Bir müzisyen olarak, müzik dinlerken ne duyduğunuzu anlamak önemlidir. Tıpkı birinin konuşmasını dinlemek gibi - sadece sesi değil, kelimeleri ve cümleleri de anlarsınız.",
     sec2: "İyi bir müzik kulağı, beste yaparken, doğaçlama yaparken veya başkalarıyla çalarken de yardımcı olur.",
     sec3: "Bu uygulama, Alain Benbassat tarafından keşfedilen devrim niteliğinde bir kulak eğitimi yöntemini tanıtır. Kolay, etkili ve herkes için uygundur.",
@@ -179,14 +179,16 @@ export default {
     sec8: "önemli değil (hiç enstrüman çalmasanız bile bu yöntem size uygundur)",
   },
   metodTextPage2: {
-    title: "2. Notalar ve Aralıklar",
+    title: "Notalar ve Aralıklar",
     sec1: "Müzikte 12 nota vardır:",
     sec2: "C, C#, D, D#, E, F, F#, G, G#, A, A#, B",
     sec3: "İki bitişik nota arasındaki aralığa yarım ses (semiton) denir (C'den C#'ye, C#'den D'ye, D'den D#'ye vb.).",
     sec4: "Bir tam ses, 2 yarım sesten oluşur (C'den D'ye, C#'den D#'ye, D'den E'ye vb.).",
+    sec5: "Doğu müziğinde, bu notalara ek olarak çeyrek tonlar da özgün makamları oluşturmak için kullanılır.",
+    sec6: "Örneğin: Do’dan Do yarım diyez’e (Do yarım♯) geçiş bir çeyrek ton sayılır, Do’dan Do♯’a geçiş ise bir yarım ton sayılır",
   },
   metodTextPage3: {
-    title: "3. Müzik Makamları",
+    title: "Müzik Makamları",
     sec1: "Müzik makamları Arap müziğinin temeli ve özüdür. Onlar, birlikte uyum sağlayarak benzersiz bir müzikal kimlik oluşturan bütünleşmiş bir ses ve ezgi sistemini temsil eder.",
     sec2: "Makam, belirli bir düzenle sıralanmış seslerden oluşan bir dizi olarak tanımlanabilir ve ezgiye özgün bir karakter kazandırır.",
     sec3: "Müzik makamı, düşük ses (karar) ile başlayıp yüksek ses (cevap) ile biten, divan ya da oktav denilen 8 dereceli bir dizidir.",
