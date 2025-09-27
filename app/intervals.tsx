@@ -9,7 +9,7 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { useSoundPlayer } from "@/hooks/useSoundPlayer";
+
 import { useFocusEffect } from "@react-navigation/native";
 import { useSettings } from "../context/SettingsContext";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -32,7 +32,7 @@ const IntervalTrainingScreen = () => {
     Object.keys(intervalSteps)
   );
   const [currentInterval, setCurrentInterval] = useState<string | null>(null);
-
+  const [isPlaying, setIsPlaying] = useState(false);
   const [userSelection, setUserSelection] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -43,17 +43,16 @@ const IntervalTrainingScreen = () => {
   const { state } = useSettings();
   const lables = state.labels.intervalsTraingingPage;
 
-  const soundModuleResolver = (note: string) => {
-    const folder = soundFolders[state.instrument];
-    return folder ? folder(`./${note}.mp3`) : null;
-  };
-  const { isPlaying, playSoundSequence, addTimer, soundRef, timersRef } =
-    useSoundPlayer(soundModuleResolver);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  // ======================= التغيير الأول هنا =======================
+  // غيّرنا NodeJS.Timeout[] إلى number[]
+  const timersRef = useRef<number[]>([]);
   useFocusEffect(
     useCallback(() => {
       setCurrentInterval(null);
       setUserSelection(null);
       setIsAnswered(true);
+      setIsPlaying(false);
       setShowAnswer(false);
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
@@ -128,6 +127,45 @@ const IntervalTrainingScreen = () => {
       }
       setFirstAttempt(false);
     }
+  };
+
+  const addTimer = (timer: number) => {
+    timersRef.current.push(timer);
+  };
+
+  const playSoundSequence = async (notes: string[]) => {
+    setIsPlaying(true);
+    for (const note of notes) {
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => {});
+        await soundRef.current.unloadAsync().catch(() => {});
+      }
+      const folder = soundFolders[state.instrument];
+      if (!folder) continue;
+
+      try {
+        const soundModule = folder(`./${note}.mp3`);
+        if (!soundModule) continue;
+
+        const { sound: soundObject } = await Audio.Sound.createAsync(
+          soundModule
+        );
+        soundRef.current = soundObject;
+        await soundObject.playAsync();
+
+        await new Promise<void>((resolve) => {
+          const timer = setTimeout(() => {
+            soundObject.stopAsync().catch(() => {});
+            soundObject.unloadAsync().catch(() => {});
+            resolve();
+          }, 800);
+          addTimer(timer); // الآن هذا السطر صحيح
+        });
+      } catch (error) {
+        console.error("Error playing sound:", error); // إضافة تسجيل للخطأ
+      }
+    }
+    setIsPlaying(false);
   };
 
   const toggleInterval = (interval: string) => {
