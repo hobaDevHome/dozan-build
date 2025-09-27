@@ -5,7 +5,7 @@ export default {
   appHeader: "DoMaqamizan",
   welcome: "Note Quest'e Hoş Geldiniz",
   introGame: "Tanıtım Oyunu",
-  learnMethod: "Yöntem",
+  learnMethod: "Müziğin Temelleri",
   basicTraining: "Eğitim",
   Instrument: "Enstrüman",
   Preferences: "Seçenekler",
@@ -38,7 +38,7 @@ export default {
 
   homePage: {
     testYouEar: "Test etmeyi deneyin",
-    knowAboutMaqams: "Maqamlar hakkında bilin",
+    knowAboutMaqams: "Makamın Anlamını Keşfet",
     timeForTraining: "Deneme zamanı",
     abitOfdictations: "Kısa diktasyonlar",
     diffBetweenIntervals: "Aralıklar arasındaki fark",

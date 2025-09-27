@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Switch,
   Image,
+  ScrollView,
 } from "react-native";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
@@ -122,7 +123,6 @@ const TrainingPlay = () => {
 
   const playTone = async (
     note: string,
-    duration: number = 1000,
     chord: boolean = false
   ): Promise<void> => {
     return new Promise(async (resolve) => {
@@ -210,7 +210,7 @@ const TrainingPlay = () => {
     if (playChords) {
       const chordName = `${scale}_chord`;
       //   console.log("Playing chord:", chordName);
-      await playTone(chordName, 1500, true);
+      await playTone(chordName, true);
     }
 
     const choices = levelChoicesRef.current;
@@ -231,7 +231,7 @@ const TrainingPlay = () => {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
       // await playTone(tone, 100);
-      await playQuickTone(tone, 600);
+      await playQuickTone(tone, 800);
     }
 
     setButtonColors({});
@@ -242,8 +242,8 @@ const TrainingPlay = () => {
     for (let i = fromIndex; i < choices.length; i++) {
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      // await playTone(tone, 100);
-      await playQuickTone(tone, 600);
+      await playTone(tone);
+      await playQuickTone(tone, 800);
     }
     setButtonColors({});
   };
@@ -259,7 +259,7 @@ const TrainingPlay = () => {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
       setButtonColors({ [guess]: "green" });
-      setTimeout(() => setButtonColors({}), 500);
+      setTimeout(() => setButtonColors({}), 800);
 
       const guessedIndex = choices.indexOf(lowerCaseGuess);
       if (state.backToTonic) {
@@ -278,9 +278,6 @@ const TrainingPlay = () => {
 
       setIsPlaying(false);
       if (state.autoQuestionJump) {
-        // console.log("isplaying in auto jump condition", isPlaying);
-        // console.log("Auto question jump enabled");
-
         setTimeout(() => {
           setQuestionNumber((prev) => prev + 1);
           playRandomTone();
@@ -327,149 +324,168 @@ const TrainingPlay = () => {
   };
   // console.log("Rendering TrainingPlay component", scale, cadence);
   return (
-    <View style={styles.mainContainer}>
-      <View style={styles.tilteContainer}>
-        <Text style={styles.title}>
-          {
-            state.labels.basicTrainingPages.basicTrainingHome[
-              selectedScale as Maqam
-            ]
-          }
-        </Text>
-      </View>
-      <View style={styles.scaleImageContainer}>
-        <Image
-          source={
-            maqamImages[scale.toLocaleLowerCase() as keyof typeof maqamImages]
-          }
-          style={styles.maqamScaleImage}
-        />
-      </View>
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{score.correct}</Text>
-          <Text style={styles.statLabel}>{levelLabels.correct}</Text>
+    <ScrollView
+      style={styles.scrollContainer} // تم إضافة هذا السطر
+      contentContainerStyle={styles.contentContainer} // تم إضافة هذا السطر
+      showsVerticalScrollIndicator={true} // تم إضافة هذا السطر
+      bounces={true} // تم إضافة هذا السطر
+    >
+      <View style={styles.mainContainer}>
+        <View style={styles.tilteContainer}>
+          <Text style={styles.title}>
+            {
+              state.labels.basicTrainingPages.basicTrainingHome[
+                selectedScale as Maqam
+              ]
+            }
+          </Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{score.incorrect}</Text>
-          <Text style={styles.statLabel}>{levelLabels.incorrect}</Text>
+        <View style={styles.scaleImageContainer}>
+          <Image
+            source={
+              maqamImages[scale.toLocaleLowerCase() as keyof typeof maqamImages]
+            }
+            style={styles.maqamScaleImage}
+          />
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{questionNumber}</Text>
-          <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{score.correct}</Text>
+            <Text style={styles.statLabel}>{levelLabels.correct}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{score.incorrect}</Text>
+            <Text style={styles.statLabel}>{levelLabels.incorrect}</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{questionNumber}</Text>
+            <Text style={styles.statLabel}>{state.labels.questionNo}</Text>
+          </View>
         </View>
-      </View>
 
-      <View
-        style={[
-          styles.switchContainer,
-          { flexDirection: state.language === "ar" ? "row-reverse" : "row" },
-        ]}
-      >
-        <Switch
-          value={playChords}
-          onValueChange={(value) => setPlayChords(value)}
-          thumbColor={playChords ? "#4CAF50" : "#f4f3f4"}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-        />
-        <Text style={styles.label}>{levelLabels.playchords}</Text>
-      </View>
+        <View
+          style={[
+            styles.switchContainer,
+            { flexDirection: state.language === "ar" ? "row-reverse" : "row" },
+          ]}
+        >
+          <Switch
+            value={playChords}
+            onValueChange={(value) => setPlayChords(value)}
+            thumbColor={playChords ? "#4CAF50" : "#f4f3f4"}
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+          />
+          <Text style={styles.label}>{levelLabels.playchords}</Text>
+        </View>
 
-      <View style={styles.leveContainer}>
-        <View style={styles.buttonsContainer}>
-          {cadence &&
-            cadence.map((tone: string, i: number) => (
-              <TouchableOpacity
-                key={tone}
-                style={[styles.toneButton]}
-                onPress={() => handleGuess(tone)}
-                disabled={!levelChoicesRef.current.includes(tone.toLowerCase())}
-              >
-                <View
-                  style={[
-                    styles.toneButtonTextBox,
+        <View style={styles.leveContainer}>
+          <View style={styles.buttonsContainer}>
+            {cadence &&
+              cadence.map((tone: string, i: number) => (
+                <TouchableOpacity
+                  key={tone}
+                  style={[styles.toneButton]}
+                  onPress={() => handleGuess(tone)}
+                  disabled={
                     !levelChoicesRef.current.includes(tone.toLowerCase())
-                      ? styles.dimmed
-                      : null,
-                    buttonColors[tone] === "green" && styles.correctButton,
-                    buttonColors[tone] === "red" && styles.incorrectButton,
-                  ]}
+                  }
                 >
-                  <Text style={styles.toneButtonText}>
-                    {state.language == "ar"
-                      ? keysMap[keyLables[i] as keyof typeof keysMap]
-                      : currentKeyMap[
-                          keyLables[i] as keyof typeof currentKeyMap
-                        ]}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-        </View>
-        {feedbackMessage !== "" && (
-          <Text style={styles.feedbackText}>{feedbackMessage}</Text>
-        )}
+                  <View
+                    style={[
+                      styles.toneButtonTextBox,
+                      !levelChoicesRef.current.includes(tone.toLowerCase())
+                        ? styles.dimmed
+                        : null,
+                      buttonColors[tone] === "green" && styles.correctButton,
+                      buttonColors[tone] === "red" && styles.incorrectButton,
+                    ]}
+                  >
+                    <Text style={styles.toneButtonText}>
+                      {state.language == "ar"
+                        ? keysMap[keyLables[i] as keyof typeof keysMap]
+                        : currentKeyMap[
+                            keyLables[i] as keyof typeof currentKeyMap
+                          ]}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+          </View>
+          {feedbackMessage !== "" && (
+            <Text style={styles.feedbackText}>{feedbackMessage}</Text>
+          )}
 
-        <View style={styles.controlsContainer}>
-          <TouchableOpacity
-            style={[styles.controlButton, styles.nextButton]}
-            onPress={() => {
-              setQuestionNumber(questionNumber + 1);
-              setIsPlaying(false);
-              playRandomTone();
-            }}
-            disabled={isPlaying}
-          >
-            <Ionicons
-              name="play"
-              size={24}
-              color="#FFFFFF"
-              style={{ marginRight: 5 }}
-            />
-            <Text style={styles.controlButtonText}>{levelLabels.paly}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.controlButton, styles.playButton]}
-            onPress={() => playTone(currentTone)}
-            disabled={isPlaying || !currentTone}
-          >
-            <Ionicons
-              name="refresh"
-              size={24}
-              color="#FFFFFF"
-              style={{ marginRight: 5 }}
-            />
-            <Text style={styles.controlButtonText}>{levelLabels.repeat}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.controlButton, styles.repeatButton]}
-            onPress={playMaqam}
-            disabled={isPlaying}
-          >
-            <Ionicons
-              name="musical-notes"
-              size={24}
-              color="#FFFFFF"
-              style={{ marginRight: 5 }}
-            />
-            <Text style={styles.controlButtonText}>
-              {state.labels.maqamatTraingingPage.playMaqam}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.controlsContainer}>
+            <TouchableOpacity
+              style={[styles.controlButton, styles.nextButton]}
+              onPress={() => {
+                setQuestionNumber(questionNumber + 1);
+                setIsPlaying(false);
+                playRandomTone();
+              }}
+              disabled={isPlaying}
+            >
+              <Ionicons
+                name="play"
+                size={24}
+                color="#FFFFFF"
+                style={{ marginRight: 5 }}
+              />
+              <Text style={styles.controlButtonText}>{levelLabels.paly}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.controlButton, styles.playButton]}
+              onPress={() => playTone(currentTone)}
+              disabled={isPlaying || !currentTone}
+            >
+              <Ionicons
+                name="refresh"
+                size={24}
+                color="#FFFFFF"
+                style={{ marginRight: 5 }}
+              />
+              <Text style={styles.controlButtonText}>{levelLabels.repeat}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.controlButton, styles.repeatButton]}
+              onPress={playMaqam}
+              disabled={isPlaying}
+            >
+              <Ionicons
+                name="musical-notes"
+                size={24}
+                color="#FFFFFF"
+                style={{ marginRight: 5 }}
+              />
+              <Text style={styles.controlButtonText}>
+                {state.labels.maqamatTraingingPage.playMaqam}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 // --- Styles remain unchanged ---
 const styles = StyleSheet.create({
-  mainContainer: {
+  scrollContainer: {
+    // تم إضافة هذا النمط
     flex: 1,
+    backgroundColor: "#FAFAFA",
+  },
+  contentContainer: {
+    // تم إضافة هذا النمط
+    flexGrow: 1,
+    paddingBottom: 20, // إضافة مساحة في الأسفل
+  },
+  mainContainer: {
     flexDirection: "column",
     justifyContent: "space-between",
     backgroundColor: "#FAFAFA",
     padding: 10,
+    minHeight: "100%",
   },
   scoreContainer: {
     flexDirection: "row",

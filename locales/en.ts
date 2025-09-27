@@ -5,7 +5,7 @@ export default {
   appHeader: "Maqami",
   welcome: "Welcome to Note Quest",
   introGame: "Intro Game",
-  learnMethod: "The Method",
+  learnMethod: "Music Basics",
   basicTraining: "Training",
   Instrument: "Instrument",
   Preferences: "Preferences",

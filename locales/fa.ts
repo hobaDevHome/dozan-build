@@ -5,7 +5,7 @@ export default {
   appHeader: "Maqami",
   welcome: "به نوت کوئست خوش آمدید",
   introGame: "بازی مقدماتی",
-  learnMethod: "روش",
+  learnMethod: "مبانی موسیقی",
   basicTraining: "تمرین پایه",
   Preferences: "تنظیمات",
   Navigation: "پیمایش",
@@ -39,7 +39,7 @@ export default {
 
   homePage: {
     testYouEar: "اختبر درهای شما",
-    knowAboutMaqams: "درباره مقامات",
+    knowAboutMaqams: "با معنای مقام آشنا شوید",
     timeForTraining: "زمان برای تمرین",
     abitOfdictations: "حاول استنتاج نغمات",
     diffBetweenIntervals: "تعلم فرق بین فواصل",

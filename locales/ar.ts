@@ -1,7 +1,7 @@
 export default {
   welcome: "مرحبًا بك في نوت كويست",
   introGame: "اللعبة التمهيدية",
-  learnMethod: " الطريقة",
+  learnMethod: "اساسيات الموسيقى",
   basicTraining: "التدريب الأساسي",
   melodicDictations: "إملاءات لحنية",
   intervals: "فواصل موسيقية",
