@@ -41,9 +41,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-
           "resizeMode": "contain",
-
           "backgroundColor": "#cddae2"
         }
       ],
@@ -51,7 +49,9 @@
       [
         "expo-custom-assets",
         {
-          "assetsPaths": ["./assets/sounds"],
+          "assetsPaths": [
+            "./assets/sounds"
+          ],
           "preserveFolder": true
         }
       ]
@@ -64,7 +64,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9f5e5310-0b79-4901-9a67-21e70b83a2ac"
+        "projectId": "37524661-d324-4c15-939c-27716c1787e9"
       }
     },
     "updates": {
