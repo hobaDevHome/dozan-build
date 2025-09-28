@@ -77,13 +77,6 @@ const TrainingPlay = () => {
   // ======================= الحل المركزي باستخدام useFocusEffect =======================
   useFocusEffect(
     useCallback(() => {
-      // هذا الكود سيعمل الآن في كل مرة تدخل فيها إلى الشاشة
-      // أو في كل مرة يتغير فيها المقام الذي اخترته
-
-      // للتأكد 100%، أضف هذا السطر في البداية
-      //console.log("useFocusEffect is running! Scale is:", scale);
-
-      // إعادة ضبط الحالة والبدء
       setFeedbackMessage("");
       setCanGuess(false);
       setFirstAttempt(true);
@@ -99,7 +92,6 @@ const TrainingPlay = () => {
       // --- دالة التنظيف (Cleanup Function) ---
       // هذه الدالة ستعمل عند الخروج من الشاشة
       return () => {
-        //     console.log("Cleaning up the screen..."); // للتأكد من أن التنظيف يعمل
         setIsPlaying(false);
         // إيقاف وتفريغ كل الأصوات النشطة
         if (soundRef.current) {
@@ -156,7 +148,7 @@ const TrainingPlay = () => {
   };
   const playQuickTone = (
     note: string,
-    duration: number = 400 // مدة افتراضية 400ms
+    duration: number = 400
   ): Promise<void> => {
     return new Promise(async (resolve) => {
       // إيقاف أي صوت يعمل حاليًا لضمان عدم التداخل
@@ -199,17 +191,15 @@ const TrainingPlay = () => {
     });
   };
   const playRandomTone = async () => {
-    // console.log("isplaying in playRandomTone", isPlaying);
     setFeedbackMessage("");
     setCanGuess(true);
     setFirstAttempt(true);
     if (isPlaying) return;
 
     setIsPlaying(true);
-    //  console.log("playchords", playChords);
+
     if (playChords) {
       const chordName = `${scale}_chord`;
-      //   console.log("Playing chord:", chordName);
       await playTone(chordName, true);
     }
 
@@ -220,32 +210,79 @@ const TrainingPlay = () => {
     }
     const randomTone = choices[Math.floor(Math.random() * choices.length)];
     setCurrentTone(randomTone);
+    console.log(randomTone);
 
     await playTone(randomTone);
     setIsPlaying(false);
   };
 
-  const playPreviousNotes = async (fromIndex: number) => {
+  // const playPreviousNotes = async (fromIndex: number) => {
+  //   const choices = levelChoicesRef.current;
+  //   for (let i = fromIndex; i >= 0; i--) {
+  //     const tone = choices[i];
+  //     setButtonColors({ [tone]: "green" });
+  //     // await playTone(tone, 100);
+  //     await playQuickTone(tone, 400);
+  //   }
+
+  //   setButtonColors({});
+  // };
+
+  const playPreviousNotes = (fromIndex: number) => {
     const choices = levelChoicesRef.current;
-    for (let i = fromIndex; i >= 0; i--) {
-      const tone = choices[i];
-      setButtonColors({ [tone]: "green" });
-      // await playTone(tone, 100);
-      await playQuickTone(tone, 800);
-    }
+    let i = fromIndex;
 
     setButtonColors({});
+
+    const intervalId = setInterval(() => {
+      if (i < 0) {
+        setButtonColors({});
+        clearInterval(intervalId);
+        return;
+      }
+
+      const tone = choices[i];
+      setButtonColors({ [tone]: "green" });
+
+      // تشغيل النغمة بدون انتظار الانتهاء
+      playTone(tone);
+
+      i--;
+    }, 400); // كل 400 مللي ثانية
   };
 
-  const playNextNotes = async (fromIndex: number) => {
+  // const playNextNotes = async (fromIndex: number) => {
+  //   const choices = levelChoicesRef.current;
+  //   for (let i = fromIndex; i < choices.length; i++) {
+  //     const tone = choices[i];
+  //     setButtonColors({ [tone]: "green" });
+  //     // await playTone(tone);
+  //     await playQuickTone(tone, 400);
+  //   }
+  //   setButtonColors({});
+  // };
+
+  const playNextNotes = (fromIndex: number) => {
     const choices = levelChoicesRef.current;
-    for (let i = fromIndex; i < choices.length; i++) {
+    let i = fromIndex;
+
+    setButtonColors({});
+
+    const intervalId = setInterval(() => {
+      if (i >= choices.length) {
+        setButtonColors({});
+        clearInterval(intervalId);
+        return;
+      }
+
       const tone = choices[i];
       setButtonColors({ [tone]: "green" });
-      await playTone(tone);
-      await playQuickTone(tone, 800);
-    }
-    setButtonColors({});
+
+      // شغل النغمة بدون انتظار
+      playTone(tone);
+
+      i++;
+    }, 400); // كل 400 مللي ثانية ينادى على نغمة جديدة
   };
 
   const handleGuess = async (guess: string) => {
@@ -322,7 +359,7 @@ const TrainingPlay = () => {
       });
     } catch (error) {}
   };
-  // console.log("Rendering TrainingPlay component", scale, cadence);
+
   return (
     <ScrollView
       style={styles.scrollContainer} // تم إضافة هذا السطر
