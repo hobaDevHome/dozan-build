@@ -175,15 +175,22 @@ const DictaionsPlay = () => {
     } catch (error) {}
   };
 
-  const playSequence = async (notesToPlay: string[]) => {
+  const playSequence = (notesToPlay: string[]) => {
     setIsPlaying(true);
-    for (const note of notesToPlay) {
-      await playTone(note, 1);
-      await new Promise((resolve) => {
-        revealTimeoutRef.current = setTimeout(resolve, 1200);
-      });
-    }
-    setIsPlaying(false);
+    let index = 0;
+
+    const intervalId = setInterval(() => {
+      if (index >= notesToPlay.length) {
+        setIsPlaying(false);
+        clearInterval(intervalId);
+        return;
+      }
+
+      const note = notesToPlay[index];
+      playTone(note, 1); // تشغيل النغمة بدون انتظار انتهاءها
+
+      index++;
+    }, 1000); // كل 500 مللي ثانية تشغيل نغمة جديدة
   };
 
   const playRandomNotes = async () => {
