@@ -12,16 +12,14 @@ const Page2 = () => {
       <AppText style={styles.subtitle}>{labels.title}</AppText>
 
       <AppText style={styles.text}>{labels.sec1}</AppText>
-
-      <AppText style={styles.highlight}>{labels.sec2}</AppText>
-
-      {/* sec3 */}
+      <AppText style={styles.text}>{labels.sec2}</AppText>
       <AppText style={styles.text}>{labels.sec3}</AppText>
-
-      {/* sec4*/}
       <AppText style={styles.text}>{labels.sec4}</AppText>
-      <AppText style={styles.text}>{labels.sec5}</AppText>
+
+      <AppText style={styles.highlight}>{labels.sec5}</AppText>
+
       <AppText style={styles.text}>{labels.sec6}</AppText>
+      <AppText style={styles.text}>{labels.sec7}</AppText>
     </View>
   );
 };
