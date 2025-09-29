@@ -5,22 +5,12 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import React from "react";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import React, { useEffect } from "react";
 import { router, useNavigation } from "expo-router";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { useSettings } from "@/context/SettingsContext";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import Foundation from "@expo/vector-icons/Foundation";
 import { Maqam } from "@/constants/scales";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-type TrainingScreenParams = {
-  id: string;
-  scale: string;
-  levelChoices: string[];
-  label: string;
-};
 
 type PlayParams = {
   id: string;
@@ -37,7 +27,6 @@ const TrainingScreen = () => {
   const { state, dispatch } = useSettings();
   const trainingLevelLables =
     state.labels.basicTrainingPages.basicTrainingLevel;
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const { id, scale, levelChoices, label } = state.trainingParams || {};
 

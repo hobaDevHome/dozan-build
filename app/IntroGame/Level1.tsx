@@ -13,7 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSettings } from "../../context/SettingsContext";
 import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 type Level1RouteParams = {
   levelChoices: string;
   maqamSection?: string;
@@ -38,7 +38,6 @@ const Level1 = () => {
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(1);
 
-  // Refs لإدارة كائنات الصوت بشكل آمن
   const soundRef = useRef<Audio.Sound | null>(null);
   const maqamSoundRef = useRef<Audio.Sound | null>(null);
   const currentLevelChoicesRef = useRef<string[]>([]);
@@ -62,6 +61,16 @@ const Level1 = () => {
     levelChoices[1] + 1
   );
 
+  const scoreRef = useRef(score);
+  const questionNumberRef = useRef(questionNumber);
+
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
+  useEffect(() => {
+    questionNumberRef.current = questionNumber;
+  }, [questionNumber]);
+
   useEffect(() => {
     currentLevelChoicesRef.current = currentLevelChoices;
   }, [currentLevelChoices]);
@@ -69,41 +78,53 @@ const Level1 = () => {
   // ======================= الحل النهائي والصحيح =======================
   useFocusEffect(
     useCallback(() => {
-      // هذا الكود يعمل عند الدخول إلى الشاشة (focus)
-      console.log("Screen focused: Initializing game state.");
-
-      // إعادة ضبط الحالة عند كل دخول جديد
+      // إعادة تعيين الحالة عند دخول الصفحة
       setScore({ correct: 0, incorrect: 0 });
       setQuestionNumber(1);
       setFirstAttempt(true);
       setButtonColors({});
       setCanGuess(false);
 
-      // بدء اللعبة بعد فترة قصيرة
       const gameStartTimer = setTimeout(() => {
         playRandomTone();
       }, 100);
 
-      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
+      // التنظيف وحفظ السكور عند الخروج من الصفحة
       return () => {
-        console.log("Screen blurred: Stopping all sounds.");
-        clearTimeout(gameStartTimer); // إلغاء بدء اللعبة إذا خرج المستخدم بسرعة
+        clearTimeout(gameStartTimer);
 
-        // إيقاف وتفريغ صوت النغمة الرئيسي بأمان
+        const currentScore = scoreRef.current;
+        const currentQuestionNumber = questionNumberRef.current;
+
+        const totalAnswers = currentScore.correct + currentScore.incorrect;
+        const percentage =
+          totalAnswers > 0 ? (currentScore.correct / totalAnswers) * 100 : 0;
+
+        console.log("Saving score on exit:", {
+          correct: currentScore.correct,
+          questionNumber: currentQuestionNumber,
+          percentage,
+          key: `score_level_${levelChoices?.join("_")}`,
+        });
+        //
+        AsyncStorage.setItem(
+          `score_level_${levelChoices?.join("_")}`,
+          percentage.toString()
+        ).catch(console.error);
+
+        // وقف وتنظيف الأصوات بأمان
         if (soundRef.current) {
-          soundRef.current.stopAsync().catch(() => {}); // تجاهل الخطأ إذا لم يكن محملاً
+          soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
-
-        // إيقاف وتفريغ صوت المقام بأمان
         if (maqamSoundRef.current) {
           maqamSoundRef.current.stopAsync().catch(() => {});
           maqamSoundRef.current.unloadAsync().catch(() => {});
           maqamSoundRef.current = null;
         }
       };
-    }, []) // useCallback تضمن أن هذا التأثير لا يُعاد إنشاؤه بدون داعٍ
+    }, [levelChoices])
   );
   // ======================= نهاية الحل =======================
 

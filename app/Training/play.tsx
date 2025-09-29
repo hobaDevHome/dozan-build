@@ -21,7 +21,7 @@ import {
 import { useSettings } from "@/context/SettingsContext";
 import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 type Maqam =
   | "Rast"
   | "Bayaty"
@@ -33,7 +33,7 @@ type Maqam =
   | "Kurd";
 
 const TrainingPlay = () => {
-  const { state } = useSettings();
+  const { state, dispatch } = useSettings();
   const { id, scale, levelChoices = [], label } = state.trainingParams || {};
 
   const [currentTone, setCurrentTone] = useState<string>("");
@@ -62,6 +62,7 @@ const TrainingPlay = () => {
   const selectedScale = scale.charAt(0).toUpperCase() + scale.slice(1);
   const levelLabels = state.labels.introGamePage.levelPage;
   const cadence = scalesLists[selectedScale as Maqam];
+
   let keyLables = cadence
     ? cadence.map((key) => {
         let keyName1 = key.charAt(0).toUpperCase() + key.slice(1);
@@ -73,8 +74,21 @@ const TrainingPlay = () => {
       })
     : [];
   let currentKeyMap = tonesLables[state.toneLabel as keyof typeof tonesLables];
+  const scoreRef = useRef(score);
+  const questionNumberRef = useRef(questionNumber);
 
-  // ======================= الحل المركزي باستخدام useFocusEffect =======================
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
+
+  useEffect(() => {
+    questionNumberRef.current = questionNumber;
+  }, [questionNumber]);
+
+  useEffect(() => {
+    levelChoicesRef.current = levelChoices;
+  }, [levelChoices]);
+
   useFocusEffect(
     useCallback(() => {
       setFeedbackMessage("");
@@ -85,15 +99,29 @@ const TrainingPlay = () => {
       setIsPlaying(false);
       setCurrentTone("");
       setScore({ correct: 0, incorrect: 0 });
-
-      // استدعاء الدالة التي كانت لا تعمل
       playRandomTone();
 
-      // --- دالة التنظيف (Cleanup Function) ---
-      // هذه الدالة ستعمل عند الخروج من الشاشة
       return () => {
-        setIsPlaying(false);
-        // إيقاف وتفريغ كل الأصوات النشطة
+        const totalAnswers =
+          scoreRef.current.correct + scoreRef.current.incorrect;
+        const percentage =
+          totalAnswers > 0
+            ? (scoreRef.current.correct / totalAnswers) * 100
+            : 0;
+
+        const storageKey = `training_score_level_${scale.toLowerCase()}_${levelChoicesRef.current.join(
+          "_"
+        )}`;
+
+        console.log(`[TrainingPlay] Saving Score:`, {
+          percentage,
+          key: storageKey,
+        });
+
+        AsyncStorage.setItem(storageKey, percentage.toString()).catch(
+          console.error
+        );
+
         if (soundRef.current) {
           soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
@@ -104,12 +132,10 @@ const TrainingPlay = () => {
           maqamSoundRef.current.unloadAsync().catch(() => {});
           maqamSoundRef.current = null;
         }
-
-        // إلغاء أي مؤقتات (timers) معلقة لمنع تسريب الذاكرة
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [state.trainingParams]) // <-- التعديل الأهم: أضفنا الاعتمادية هنا
+    }, [state.trainingParams]) // أو اعتماديات مناسبة
   );
   // ======================= نهاية الحل =======================
 

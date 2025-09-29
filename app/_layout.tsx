@@ -386,7 +386,7 @@ function AppContent() {
                 {...props}
                 onPress={() => {
                   console.log("from play to training screen");
-                  router.push("/Training/TrainingScreen"); // أو أي مسار تحبي ترجعي له بدل الهوم
+                  router.replace("/Training/TrainingScreen"); // أو أي مسار تحبي ترجعي له بدل الهوم
                 }}
                 tintColor="black" // لون السهم
               />

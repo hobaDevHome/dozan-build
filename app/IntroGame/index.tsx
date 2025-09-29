@@ -11,6 +11,9 @@ import {
 import { useSettings } from "../../context/SettingsContext";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 const cadence = ["Do", "Re", "Mi", "Doo"];
 
@@ -79,8 +82,28 @@ type RootStackParamList = {
 };
 export default function IntroGame() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-
+  const [scores, setScores] = useState<{ [key: string]: number }>({});
   const { state, dispatch } = useSettings();
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchScores = async () => {
+        const newScores: { [key: string]: number } = {};
+        for (const level of levels.slice(1)) {
+          const key = `score_level_${level.levelChoices.join("_")}`;
+          const scoreStr = await AsyncStorage.getItem(key);
+          if (scoreStr !== null) {
+            newScores[key] = parseFloat(scoreStr);
+          }
+        }
+        setScores(newScores);
+      };
+
+      fetchScores();
+    }, [])
+  );
+
+  console.log(scores);
 
   return (
     <ScrollView
@@ -118,97 +141,93 @@ export default function IntroGame() {
 
       {/* level buttons */}
 
-      {levels.slice(1).map((test, index) => (
-        <TouchableOpacity
-          key={test.title}
-          style={[
-            styles.testCard,
-            {
-              backgroundColor: test.color,
-              justifyContent:
-                state.language === "ar" || state.language === "fa"
-                  ? "flex-end"
-                  : "flex-start",
-            },
-          ]}
-          activeOpacity={0.8}
-          onPress={() => {
-            dispatch({
-              type: "SET_GAME_PARAMS",
-              payload: {
-                levelChoices: test.levelChoices,
-                maqamSection: test.maqamSection,
-              },
-            });
-            router.push("/IntroGame/Level1");
-          }}
-        >
-          <View
+      {levels.slice(1).map((test, index) => {
+        const scoreKey = `score_level_${test.levelChoices.join("_")}`;
+        const scorePercent = scores[scoreKey];
+        return (
+          <TouchableOpacity
+            key={test.title}
             style={[
-              styles.testHeader,
+              styles.testCard,
               {
-                flexDirection:
-                  state.language === "ar" || state.language === "fa"
-                    ? "row-reverse"
-                    : "row",
-              },
-            ]}
-            key={index}
-          >
-            <Text style={styles.testName}>
-              {
-                state.labels.introGamePage.pages[
-                  `level${
-                    index + 1
-                  }` as keyof typeof state.labels.introGamePage.pages
-                ]
-              }
-            </Text>
-            <TouchableOpacity style={styles.previewButton}>
-              <Ionicons name="play-circle-outline" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          <View
-            style={[
-              styles.notesContainer,
-              {
+                backgroundColor: test.color,
                 justifyContent:
                   state.language === "ar" || state.language === "fa"
                     ? "flex-end"
                     : "flex-start",
               },
             ]}
+            activeOpacity={0.8}
+            onPress={() => {
+              dispatch({
+                type: "SET_GAME_PARAMS",
+                payload: {
+                  levelChoices: test.levelChoices,
+                  maqamSection: test.maqamSection,
+                },
+              });
+              router.push("/IntroGame/Level1");
+            }}
           >
-            {test.notes?.slice(0, 6).map((note, noteIndex) => (
-              <View key={noteIndex} style={styles.noteChip}>
-                <Text style={styles.noteText}>{note}</Text>
-              </View>
-            ))}
-            {test.notes && test.notes.length > 6 && (
-              <View style={styles.noteChip}>
-                <Text style={styles.noteText}>+{test.notes.length - 6}</Text>
-              </View>
-            )}
-          </View>
-
-          <View
-            style={[
-              styles.difficultyContainer,
-              {
-                flexDirection:
-                  state.language === "ar" || state.language === "fa"
-                    ? "row-reverse"
-                    : "row",
-              },
-            ]}
-          >
-            <Text style={styles.difficultyLabel}>
-              {state.labels.difficulty}:
-            </Text>
             <View
               style={[
-                styles.difficultyStars,
+                styles.testHeader,
+                {
+                  flexDirection:
+                    state.language === "ar" || state.language === "fa"
+                      ? "row-reverse"
+                      : "row",
+                },
+              ]}
+              key={index}
+            >
+              <Text style={styles.testName}>
+                {
+                  state.labels.introGamePage.pages[
+                    `level${
+                      index + 1
+                    }` as keyof typeof state.labels.introGamePage.pages
+                  ]
+                }
+              </Text>
+              <Text style={{ color: "#fff", marginLeft: 8, fontSize: 12 }}>
+                {scorePercent !== undefined ? scorePercent.toFixed(1) : "0.0"}%
+              </Text>
+              <TouchableOpacity style={styles.previewButton}>
+                <Ionicons
+                  name="play-circle-outline"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={[
+                styles.notesContainer,
+                {
+                  justifyContent:
+                    state.language === "ar" || state.language === "fa"
+                      ? "flex-end"
+                      : "flex-start",
+                },
+              ]}
+            >
+              {test.notes?.slice(0, 6).map((note, noteIndex) => (
+                <View key={noteIndex} style={styles.noteChip}>
+                  <Text style={styles.noteText}>{note}</Text>
+                </View>
+              ))}
+              {test.notes && test.notes.length > 6 && (
+                <View style={styles.noteChip}>
+                  <Text style={styles.noteText}>+{test.notes.length - 6}</Text>
+                </View>
+              )}
+            </View>
+
+            <View
+              style={[
+                styles.difficultyContainer,
                 {
                   flexDirection:
                     state.language === "ar" || state.language === "fa"
@@ -217,22 +236,37 @@ export default function IntroGame() {
                 },
               ]}
             >
-              {[...Array(5)].map((_, starIndex) => (
-                <Ionicons
-                  key={starIndex}
-                  name={
-                    starIndex < Math.ceil(index / 2) + 1
-                      ? "star"
-                      : "star-outline"
-                  }
-                  size={12}
-                  color="#FFFFFF"
-                />
-              ))}
+              <Text style={styles.difficultyLabel}>
+                {state.labels.difficulty}:
+              </Text>
+              <View
+                style={[
+                  styles.difficultyStars,
+                  {
+                    flexDirection:
+                      state.language === "ar" || state.language === "fa"
+                        ? "row-reverse"
+                        : "row",
+                  },
+                ]}
+              >
+                {[...Array(5)].map((_, starIndex) => (
+                  <Ionicons
+                    key={starIndex}
+                    name={
+                      starIndex < Math.ceil(index / 2) + 1
+                        ? "star"
+                        : "star-outline"
+                    }
+                    size={12}
+                    color="#FFFFFF"
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }

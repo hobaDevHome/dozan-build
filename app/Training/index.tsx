@@ -11,6 +11,10 @@ import { useSettings } from "@/context/SettingsContext";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { trainigLevels } from "@/constants/scales";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useState } from "react";
+import TrainingListen from "./listen";
 
 type RootStackParamList = {
   "play": PlayParams;
@@ -32,11 +36,37 @@ type PlayParams = {
   levelChoices: string[];
   label: string;
 };
-export default function IntroGame() {
+export default function TrainingMneu() {
+  const [scores, setScores] = useState<{ [key: string]: number }>({});
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { state, dispatch } = useSettings();
 
   const pageLables = state.labels.basicTrainingPages.basicTrainingHome;
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchScores = async () => {
+        const newScores: { [key: string]: number } = {};
+        for (const level of trainigLevels) {
+          const key = `training_score_level_${level.scale.toLowerCase()}_${level.levelChoices.join(
+            "_"
+          )}`;
+          const scoreStr = await AsyncStorage.getItem(key);
+          if (scoreStr !== null) {
+            newScores[key] = parseFloat(scoreStr);
+            console.log(
+              `[trining] Loaded Score for ${key}:`,
+              parseFloat(scoreStr)
+            );
+          }
+        }
+        setScores(newScores);
+      };
+
+      fetchScores();
+    }, [])
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -49,81 +79,79 @@ export default function IntroGame() {
           {state.labels.basicTrainingPages.basicTrainingHome.intro}
         </Text>
       </View>
-      {trainigLevels.map((level, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.button,
-            { backgroundColor: buttonColors[index % buttonColors.length] },
-            {
-              justifyContent:
-                state.language === "ar" || state.language === "fa"
-                  ? "flex-end"
-                  : "flex-start",
-            },
-          ]}
-          onPress={() => {
-            dispatch({
-              type: "SET_TRAINING_PARAMS",
-              payload: {
-                id: level.id,
-                scale: level.scale,
-                levelChoices: level.levelChoices,
-                label: level.label,
-              },
-            });
-            router.push("/Training/TrainingScreen");
-          }}
-        >
-          {/* // text */}
+      {trainigLevels.map((level, index) => {
+        const storageKey = `training_score_level_${level.scale.toLowerCase()}_${level.levelChoices.join(
+          "_"
+        )}`;
+        const scorePercent = scores[storageKey];
 
-          <View
-            style={[
-              styles.testHeader,
-              {
-                flexDirection:
-                  state.language === "ar" || state.language === "fa"
-                    ? "row-reverse"
-                    : "row",
-              },
-            ]}
+        return (
+          <TouchableOpacity
             key={index}
-          >
-            <Text style={styles.buttonText}>
-              {level.id} :{" "}
-              {pageLables.hasOwnProperty(level.scale)
-                ? pageLables[level.scale as keyof typeof pageLables]
-                : level.scale}{" "}
-              -
-              {level.label == "section1"
-                ? pageLables.firstHalf
-                : level.label == "section2"
-                ? pageLables.secondHalf
-                : pageLables.wholescale}
-            </Text>
-            <TouchableOpacity style={styles.previewButton}>
-              <Ionicons name="play-circle-outline" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* diff */}
-          <View
             style={[
-              styles.difficultyContainer,
+              styles.button,
+              { backgroundColor: buttonColors[index % buttonColors.length] },
               {
-                flexDirection:
+                justifyContent:
                   state.language === "ar" || state.language === "fa"
-                    ? "row-reverse"
-                    : "row",
+                    ? "flex-end"
+                    : "flex-start",
               },
             ]}
+            onPress={() => {
+              dispatch({
+                type: "SET_TRAINING_PARAMS",
+                payload: {
+                  id: level.id,
+                  scale: level.scale,
+                  levelChoices: level.levelChoices,
+                  label: level.label,
+                },
+              });
+              router.push("/Training/TrainingScreen");
+            }}
           >
-            <Text style={styles.difficultyLabel}>
-              {state.labels.difficulty}:
-            </Text>
             <View
               style={[
-                styles.difficultyStars,
+                styles.testHeader,
+                {
+                  flexDirection:
+                    state.language === "ar" || state.language === "fa"
+                      ? "row-reverse"
+                      : "row",
+                },
+              ]}
+              key={index}
+            >
+              <Text style={styles.buttonText}>
+                {level.id} :{" "}
+                {pageLables.hasOwnProperty(level.scale)
+                  ? pageLables[level.scale as keyof typeof pageLables]
+                  : level.scale}{" "}
+                -{" "}
+                {level.label == "section1"
+                  ? pageLables.firstHalf
+                  : level.label == "section2"
+                  ? pageLables.secondHalf
+                  : pageLables.wholescale}
+              </Text>
+              <Text style={{ color: "#fff", marginLeft: 8, fontSize: 12 }}>
+                {scorePercent !== undefined ? scorePercent.toFixed(1) : "0.0"}%
+              </Text>
+
+              <TouchableOpacity style={styles.previewButton}>
+                <Ionicons
+                  name="play-circle-outline"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* diff */}
+            <View
+              style={[
+                styles.difficultyContainer,
                 {
                   flexDirection:
                     state.language === "ar" || state.language === "fa"
@@ -132,22 +160,37 @@ export default function IntroGame() {
                 },
               ]}
             >
-              {[...Array(5)].map((_, starIndex) => (
-                <Ionicons
-                  key={starIndex}
-                  name={
-                    starIndex < Math.ceil(index / 2) + 1
-                      ? "star"
-                      : "star-outline"
-                  }
-                  size={12}
-                  color="#FFFFFF"
-                />
-              ))}
+              <Text style={styles.difficultyLabel}>
+                {state.labels.difficulty}:
+              </Text>
+              <View
+                style={[
+                  styles.difficultyStars,
+                  {
+                    flexDirection:
+                      state.language === "ar" || state.language === "fa"
+                        ? "row-reverse"
+                        : "row",
+                  },
+                ]}
+              >
+                {[...Array(5)].map((_, starIndex) => (
+                  <Ionicons
+                    key={starIndex}
+                    name={
+                      starIndex < Math.ceil(index / 2) + 1
+                        ? "star"
+                        : "star-outline"
+                    }
+                    size={12}
+                    color="#FFFFFF"
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
