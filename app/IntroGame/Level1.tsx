@@ -63,6 +63,11 @@ const Level1 = () => {
 
   const scoreRef = useRef(score);
   const questionNumberRef = useRef(questionNumber);
+  const isPlayingRef = useRef(isPlaying);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
 
   useEffect(() => {
     scoreRef.current = score;
@@ -75,10 +80,8 @@ const Level1 = () => {
     currentLevelChoicesRef.current = currentLevelChoices;
   }, [currentLevelChoices]);
 
-  // ======================= الحل النهائي والصحيح =======================
   useFocusEffect(
     useCallback(() => {
-      // إعادة تعيين الحالة عند دخول الصفحة
       setScore({ correct: 0, incorrect: 0 });
       setQuestionNumber(1);
       setFirstAttempt(true);
@@ -89,30 +92,25 @@ const Level1 = () => {
         playRandomTone();
       }, 100);
 
-      // التنظيف وحفظ السكور عند الخروج من الصفحة
       return () => {
         clearTimeout(gameStartTimer);
-
         const currentScore = scoreRef.current;
         const currentQuestionNumber = questionNumberRef.current;
-
         const totalAnswers = currentScore.correct + currentScore.incorrect;
         const percentage =
           totalAnswers > 0 ? (currentScore.correct / totalAnswers) * 100 : 0;
 
-        console.log("Saving score on exit:", {
-          correct: currentScore.correct,
-          questionNumber: currentQuestionNumber,
-          percentage,
-          key: `score_level_${levelChoices?.join("_")}`,
-        });
+        // console.log("Saving score on exit:", {
+        //   correct: currentScore.correct,
+        //   questionNumber: currentQuestionNumber,
+        //   percentage,
+        //   key: `score_level_${levelChoices?.join("_")}`,
+        // });
         //
         AsyncStorage.setItem(
           `score_level_${levelChoices?.join("_")}`,
           percentage.toString()
         ).catch(console.error);
-
-        // وقف وتنظيف الأصوات بأمان
         if (soundRef.current) {
           soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
@@ -126,29 +124,23 @@ const Level1 = () => {
       };
     }, [levelChoices])
   );
-  // ======================= نهاية الحل =======================
 
   const playTone = async (
     note: string,
     duration: number = 1000
   ): Promise<void> => {
-    // ... الكود هنا يبقى كما هو
     return new Promise(async (resolve, reject) => {
       try {
-        // لا داعي لإيقاف الصوت هنا، سيتم التعامل معه في بداية التشغيل التالي
         const soundName = note.toLowerCase();
         const folder = soundFolders[state.instrument];
         if (!folder) return resolve();
-
         const soundModule = folder(`./${soundName}.mp3`);
         if (!soundModule) return resolve();
-
         const { sound: soundObject } = await Audio.Sound.createAsync(
           soundModule
         );
-        soundRef.current = soundObject; // تخزين الكائن في الـ ref
+        soundRef.current = soundObject;
         await soundObject.playAsync();
-
         if (soundName !== "cords" || duration < 1000) {
           setTimeout(async () => {
             try {
@@ -172,10 +164,9 @@ const Level1 = () => {
   };
 
   const playRandomTone = async () => {
-    // ... الكود هنا يبقى كما هو
+    if (isPlayingRef.current) return;
     setCanGuess(true);
     setFirstAttempt(true);
-    if (isPlaying) return;
 
     setIsPlaying(true);
     if (playCords) {
@@ -242,22 +233,41 @@ const Level1 = () => {
   };
 
   const handleGuess = async (guess: string) => {
-    // ... الكود هنا يبقى كما هو
     if (!canGuess) return;
+    setIsPlaying(true);
+
     const choices = currentLevelChoicesRef.current;
+    const lowerCaseGuess = guess.toLowerCase();
     if (guess === currentTone) {
       setCanGuess(false);
+
       if (firstAttempt) {
         setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
       }
+
       setButtonColors({ [guess]: "green" });
-      setTimeout(() => setButtonColors({}), 500);
-      // ... (باقي منطق اللعب)
-      await playTone(guess); // مثال
+
+      setTimeout(() => setButtonColors({}), 800);
+      const guessedIndex = choices.indexOf(lowerCaseGuess);
+
+      if (state.backToTonic) {
+        if (maqamSection === 2) {
+          guessedIndex <= 3
+            ? await playPreviousNotes(guessedIndex)
+            : await playNextNotes(guessedIndex);
+        } else if (maqamSection === 0) {
+          await playPreviousNotes(guessedIndex);
+        } else {
+          await playNextNotes(guessedIndex);
+        }
+      } else {
+        await playTone(guess);
+      }
+      setIsPlaying(false);
       setTimeout(() => {
         setQuestionNumber((prev) => prev + 1);
         playRandomTone();
-      }, 100);
+      }, 500);
     } else {
       playTone(guess);
       if (firstAttempt) {
@@ -269,31 +279,46 @@ const Level1 = () => {
     }
   };
 
-  // ... (باقي الدوال مثل playPreviousNotes و playNextNotes تبقى كما هي)
-  const playPreviousNotes = async (fromIndex: number) => {
+  const playPreviousNotes = (fromIndex: number): Promise<void> => {
     const choices = currentLevelChoicesRef.current;
-    for (let i = fromIndex; i >= 0; i--) {
-      const tone = choices[i];
-      setButtonColors({ [tone]: "green" });
-      const duration = i === 0 ? 1200 : i === fromIndex ? 700 : 400;
-      await playTone(tone, duration);
-    }
-    setButtonColors({});
+    return new Promise((resolve) => {
+      let i = fromIndex;
+      setButtonColors({});
+      const intervalId = setInterval(() => {
+        if (i < 0) {
+          setButtonColors({});
+          clearInterval(intervalId);
+          resolve();
+          return;
+        }
+        const tone = choices[i];
+        setButtonColors({ [tone]: "green" });
+        playTone(tone);
+        i--;
+      }, 400);
+    });
   };
 
-  const playNextNotes = async (fromIndex: number) => {
+  const playNextNotes = (fromIndex: number): Promise<void> => {
     const choices = currentLevelChoicesRef.current;
-    for (let i = fromIndex; i < choices.length; i++) {
-      const tone = choices[i];
-      setButtonColors({ [tone]: "green" });
-      const duration =
-        i === choices.length - 1 ? 1200 : i === fromIndex ? 700 : 400;
-      await playTone(tone, duration);
-    }
-    setButtonColors({});
+    return new Promise((resolve) => {
+      let i = fromIndex;
+      setButtonColors({});
+      const intervalId = setInterval(() => {
+        if (i >= choices.length) {
+          setButtonColors({});
+          clearInterval(intervalId);
+          resolve();
+          return;
+        }
+        const tone = choices[i];
+        setButtonColors({ [tone]: "green" });
+        playTone(tone);
+        i++;
+      }, 400);
+    });
   };
 
-  // واجهة المستخدم (JSX) تبقى كما هي بدون تغيير
   return (
     <View style={styles.mainContainer}>
       <View style={styles.statsContainer}>
