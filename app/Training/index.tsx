@@ -38,10 +38,7 @@ type PlayParams = {
 };
 export default function TrainingMneu() {
   const [scores, setScores] = useState<{ [key: string]: number }>({});
-
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { state, dispatch } = useSettings();
-
   const pageLables = state.labels.basicTrainingPages.basicTrainingHome;
 
   useFocusEffect(
@@ -67,10 +64,15 @@ export default function TrainingMneu() {
       fetchScores();
     }, [])
   );
+  const getBackgroundColor = (score: number | undefined): string => {
+    if (!score) return "#be2e25"; // لون افتراضي لو السكور غير موجود
+    if (score <= 50) return "#be2e25"; // لون للجودة المنخفضة (أحمر)
+    if (score <= 75) return "#f89901"; // لون متوسط (أصفر)
+    return "#2eb163"; // لون جيد (أخضر)
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructionsTitle}>
           {state.labels.introGamePage.chooseYourChallenge}
@@ -84,7 +86,6 @@ export default function TrainingMneu() {
           "_"
         )}`;
         const scorePercent = scores[storageKey];
-
         return (
           <TouchableOpacity
             key={index}
@@ -135,9 +136,6 @@ export default function TrainingMneu() {
                   ? pageLables.secondHalf
                   : pageLables.wholescale}
               </Text>
-              <Text style={{ color: "#fff", marginLeft: 8, fontSize: 12 }}>
-                {scorePercent !== undefined ? scorePercent.toFixed(1) : "0.0"}%
-              </Text>
 
               <TouchableOpacity style={styles.previewButton}>
                 <Ionicons
@@ -160,32 +158,50 @@ export default function TrainingMneu() {
                 },
               ]}
             >
-              <Text style={styles.difficultyLabel}>
-                {state.labels.difficulty}:
-              </Text>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.difficultyLabel}>
+                  {state.labels.difficulty}:
+                </Text>
+                <View
+                  style={[
+                    styles.difficultyStars,
+                    {
+                      flexDirection:
+                        state.language === "ar" || state.language === "fa"
+                          ? "row-reverse"
+                          : "row",
+                    },
+                  ]}
+                >
+                  {[...Array(5)].map((_, starIndex) => (
+                    <Ionicons
+                      key={starIndex}
+                      name={
+                        starIndex < Math.ceil(index / 2) + 1
+                          ? "star"
+                          : "star-outline"
+                      }
+                      size={12}
+                      color="#FFFFFF"
+                    />
+                  ))}
+                </View>
+              </View>
               <View
                 style={[
-                  styles.difficultyStars,
-                  {
-                    flexDirection:
-                      state.language === "ar" || state.language === "fa"
-                        ? "row-reverse"
-                        : "row",
-                  },
+                  styles.percentageBox,
+                  { backgroundColor: getBackgroundColor(scorePercent) },
                 ]}
               >
-                {[...Array(5)].map((_, starIndex) => (
-                  <Ionicons
-                    key={starIndex}
-                    name={
-                      starIndex < Math.ceil(index / 2) + 1
-                        ? "star"
-                        : "star-outline"
-                    }
-                    size={12}
-                    color="#FFFFFF"
-                  />
-                ))}
+                <Text style={{ color: "#fff", fontSize: 12 }}>
+                  {scorePercent !== undefined ? scorePercent.toFixed(0) : "0"} %
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -202,7 +218,13 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#FAFAFA",
   },
-
+  percentageBox: {
+    backgroundColor: "orange",
+    borderRadius: 8,
+    padding: 6,
+    marginLeft: 8,
+    marginRight: 8,
+  },
   button: {
     borderRadius: 16,
     padding: 24,
@@ -258,6 +280,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    justifyContent: "space-between",
   },
   difficultyLabel: {
     fontSize: 12,
@@ -265,6 +288,8 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   difficultyStars: {
+    marginLeft: 4,
+    marginRight: 4,
     flexDirection: "row",
     gap: 2,
   },

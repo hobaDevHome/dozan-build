@@ -103,7 +103,12 @@ export default function IntroGame() {
     }, [])
   );
 
-  console.log(scores);
+  const getBackgroundColor = (score: number | undefined): string => {
+    if (!score) return "#be2e25"; // لون افتراضي لو السكور غير موجود
+    if (score <= 50) return "#be2e25"; // لون للجودة المنخفضة (أحمر)
+    if (score <= 75) return "#f89901"; // لون متوسط (أصفر)
+    return "#2eb163"; // لون جيد (أخضر)
+  };
 
   return (
     <ScrollView
@@ -236,32 +241,50 @@ export default function IntroGame() {
                 },
               ]}
             >
-              <Text style={styles.difficultyLabel}>
-                {state.labels.difficulty}:
-              </Text>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.difficultyLabel}>
+                  {state.labels.difficulty}:
+                </Text>
+                <View
+                  style={[
+                    styles.difficultyStars,
+                    {
+                      flexDirection:
+                        state.language === "ar" || state.language === "fa"
+                          ? "row-reverse"
+                          : "row",
+                    },
+                  ]}
+                >
+                  {[...Array(5)].map((_, starIndex) => (
+                    <Ionicons
+                      key={starIndex}
+                      name={
+                        starIndex < Math.ceil(index / 2) + 1
+                          ? "star"
+                          : "star-outline"
+                      }
+                      size={12}
+                      color="#FFFFFF"
+                    />
+                  ))}
+                </View>
+              </View>
               <View
                 style={[
-                  styles.difficultyStars,
-                  {
-                    flexDirection:
-                      state.language === "ar" || state.language === "fa"
-                        ? "row-reverse"
-                        : "row",
-                  },
+                  styles.percentageBox,
+                  { backgroundColor: getBackgroundColor(scorePercent) },
                 ]}
               >
-                {[...Array(5)].map((_, starIndex) => (
-                  <Ionicons
-                    key={starIndex}
-                    name={
-                      starIndex < Math.ceil(index / 2) + 1
-                        ? "star"
-                        : "star-outline"
-                    }
-                    size={12}
-                    color="#FFFFFF"
-                  />
-                ))}
+                <Text style={{ color: "#fff", fontSize: 12 }}>
+                  {scorePercent !== undefined ? scorePercent.toFixed(0) : "0"} %
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -382,11 +405,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    justifyContent: "space-between",
   },
   difficultyLabel: {
     fontSize: 12,
     color: "#FFFFFF",
     opacity: 0.8,
+    marginRight: 4,
+    marginLeft: 4,
   },
   difficultyStars: {
     flexDirection: "row",
@@ -396,5 +422,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 16,
     right: 16,
+  },
+  percentageBox: {
+    backgroundColor: "orange",
+    borderRadius: 8,
+    padding: 6,
+    marginLeft: 8,
+    marginRight: 8,
   },
 });
