@@ -15,8 +15,17 @@ const UpgradeModal = ({
   const { state, dispatch } = useSettings();
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.upgradeModalContainer}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={styles.modalBackdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      >
         <View style={styles.upgradeModalContent}>
           <Ionicons name="lock-closed" size={48} color="#FF6B6B" />
 
@@ -67,7 +76,7 @@ const UpgradeModal = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -79,6 +88,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 20,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   upgradeModalContent: {
     backgroundColor: "#FFFFFF",
