@@ -31,7 +31,7 @@ export default {
   chooseLables: "Select tones Labels",
   chooseAnAcitivity: "Choose an activity",
 
-  freeQuestions: "Free Questions", // أو "الأسئلة المجانية" في العربي
+  freeQuestions: "Free Questions",
   upgradeRequired: "Upgrade Required",
   freeLimitReached: "You've used all available free questions",
   upgradeToUnlock: "Upgrade to unlock and enjoy all features",
@@ -40,6 +40,7 @@ export default {
   noAds: "No ads",
   upgradeNow: "Upgrade Now",
   maybeLater: "Maybe Later",
+
   keyLabels: {
     DoReMi: "Do, Re, Mi",
     Numbers: "1, 2, 3",
@@ -163,20 +164,20 @@ export default {
       "Octave",
     ],
     intervalsNamesMap: {
-      Unison: "Unison",
+      "Unison": "Unison",
       "Minor Second": "Minor Second",
       "Three Quarters": "Three-Quarters",
       "Major Second": "Major Second",
       "Minor Third": "Minor Third",
       "Major Third": "Major Third",
       "Perfect Fourth": "Perfect Fourth",
-      Tritone: "Tritone",
+      "Tritone": "Tritone",
       "Perfect Fifth": "Perfect Fifth",
       "Minor Sixth": "Minor Sixth",
       "Major Sixth": "Major Sixth",
       "Minor Seventh": "Minor Seventh",
       "Major Seventh": "Major Seventh",
-      Octave: "Octave",
+      "Octave": "Octave",
     },
   },
   metodTextPage1: {

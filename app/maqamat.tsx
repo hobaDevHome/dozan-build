@@ -242,14 +242,14 @@ const MaqamTrainingScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!state.isProUser && (
+        {/* {!state.isProUser && (
           <View style={styles.questionsCounter}>
             <Text style={styles.counterText}>
               {state.labels.freeQuestions || "الأسئلة المجانية"}:{" "}
               {state.freeQuestionsUsed.maqamatTraining}/
               {state.freeQuestionsLimit}
             </Text>
-            <Text style={styles.counterSubtitle}>(في تدريب المقامات)</Text>
+
             <View style={styles.progressBar}>
               <View
                 style={[
@@ -266,7 +266,7 @@ const MaqamTrainingScreen = () => {
               />
             </View>
           </View>
-        )}
+        )} */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>

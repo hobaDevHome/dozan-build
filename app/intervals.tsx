@@ -240,11 +240,11 @@ const IntervalTrainingScreen = () => {
         {!state.isProUser && (
           <View style={styles.questionsCounter}>
             <Text style={styles.counterText}>
-              {state.labels.freeQuestions}:{" "}
+              {state.labels.freeQuestions}:
               {state.freeQuestionsUsed.intervalTraining}/
               {state.freeQuestionsLimit}
             </Text>
-            <Text style={styles.counterSubtitle}>(في تدريب المسافات)</Text>
+
             <View style={styles.progressBar}>
               <View
                 style={[
