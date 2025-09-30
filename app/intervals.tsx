@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
-  SafeAreaView,
+  Platform,
+  StatusBar,
   ScrollView,
   Pressable,
 } from "react-native";
@@ -45,8 +46,9 @@ const IntervalTrainingScreen = () => {
   const lables = state.labels.intervalsTraingingPage;
 
   const soundRef = useRef<Audio.Sound | null>(null);
-
   const timersRef = useRef<number[]>([]);
+
+  // التصحيح هنا: نتحقق فقط إذا الأسئلة المستخدمة >= الحد
   const hasReachedLimit =
     !state.isProUser &&
     state.freeQuestionsUsed.intervalTraining >= state.freeQuestionsLimit;
@@ -61,12 +63,12 @@ const IntervalTrainingScreen = () => {
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
 
+      // ابدأ بسؤال أول فقط إذا مش وصل للحد
       if (!hasReachedLimit) {
         playInterval();
       }
 
       return () => {
-        // تنظيف آمن للـ sound
         const cleanupSound = async () => {
           if (soundRef.current) {
             try {
@@ -81,22 +83,19 @@ const IntervalTrainingScreen = () => {
         };
 
         cleanupSound();
-
-        // تنظيف الـ timers
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [selectedIntervals, hasReachedLimit])
+    }, [selectedIntervals])
   );
 
   const handleUpgrade = () => {
     setUpgradeModalVisible(false);
-    // بعدين هنضيف navigation لشاشة الـ Upgrade
     console.log("Navigate to upgrade screen");
-    // router.push("/upgrade");
   };
 
   const playInterval = () => {
+    // التصحيح هنا: تحقق من الحد قبل أي حاجة
     if (hasReachedLimit) {
       setUpgradeModalVisible(true);
       return;
@@ -110,6 +109,7 @@ const IntervalTrainingScreen = () => {
     setIsAnswered(false);
     setUserSelection(null);
 
+    // زيادة العداد
     if (!state.isProUser) {
       dispatch({ type: "INCREMENT_INTERVAL_QUESTIONS" });
     }
@@ -148,7 +148,9 @@ const IntervalTrainingScreen = () => {
       setIsAnswered(true);
 
       if (state.autoQuestionJump) {
-        const timer = setTimeout(playInterval, 3500);
+        const timer = setTimeout(() => {
+          playInterval(); // playInterval هي نفسها هتتحقق من الـ limit
+        }, 3500);
         addTimer(timer);
       }
     } else {
@@ -168,7 +170,6 @@ const IntervalTrainingScreen = () => {
 
     try {
       for (const note of notes) {
-        // أوقفي وأزيلي الصوت الحالي إذا كان موجود
         if (soundRef.current) {
           try {
             await soundRef.current.stopAsync();
@@ -192,7 +193,6 @@ const IntervalTrainingScreen = () => {
           soundRef.current = soundObject;
           await soundObject.playAsync();
 
-          // انتظري لمدة 800 مللي ثانية لكل نوتة
           await new Promise<void>((resolve) => {
             const timer = setTimeout(() => {
               resolve();
@@ -200,7 +200,6 @@ const IntervalTrainingScreen = () => {
             addTimer(timer);
           });
 
-          // أوقفي وأزيلي الصوت بعد ما يخلص
           if (soundRef.current) {
             try {
               await soundRef.current.stopAsync();
@@ -234,7 +233,8 @@ const IntervalTrainingScreen = () => {
     state.labels.intervalsTraingingPage.intervalsNamesMap;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {!state.isProUser && (
           <View style={styles.questionsCounter}>
@@ -431,7 +431,7 @@ const IntervalTrainingScreen = () => {
               <View style={styles.upgradeButtons}>
                 <TouchableOpacity
                   style={styles.upgradeButton}
-                  onPress={handleUpgrade} // غيري من onPress المباشر ل handleUpgrade
+                  onPress={handleUpgrade}
                 >
                   <Text style={styles.upgradeButtonText}>
                     {state.labels.upgradeNow || "ترقية الآن"}
@@ -451,15 +451,15 @@ const IntervalTrainingScreen = () => {
           </View>
         </Modal>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
-// --- الأنماط تبقى كما هي ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFAFA",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,

@@ -19,8 +19,9 @@ import {
   Modal,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Pressable,
+  Platform,
+  StatusBar,
 } from "react-native";
 
 const MaqamTrainingScreen = () => {
@@ -55,7 +56,6 @@ const MaqamTrainingScreen = () => {
     state.freeQuestionsUsed.maqamatTraining >= state.freeQuestionsLimit;
 
   const soundRef = useRef<Audio.Sound | null>(null);
-
   const timersRef = useRef<number[]>([]);
 
   useFocusEffect(
@@ -70,6 +70,7 @@ const MaqamTrainingScreen = () => {
       setFirstAttempt(true);
       setShowExampleControlButton(false);
 
+      // ابدأ بسؤال أول فقط إذا مش وصل للحد
       if (!hasReachedLimit) {
         playMaqam();
       }
@@ -80,11 +81,10 @@ const MaqamTrainingScreen = () => {
           soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
-
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [selectedMaqams, hasReachedLimit])
+    }, [selectedMaqams]) // شيلت hasReachedLimit من الـ dependencies
   );
 
   const addTimer = (timer: number) => {
@@ -205,7 +205,7 @@ const MaqamTrainingScreen = () => {
 
       if (state.autoQuestionJump) {
         const timer = setTimeout(playMaqam, 2000);
-        addTimer(timer); // الآن هذا السطر صحيح
+        addTimer(timer);
       }
     } else {
       if (firstAttempt) {
@@ -235,7 +235,8 @@ const MaqamTrainingScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {!state.isProUser && (
           <View style={styles.questionsCounter}>
@@ -459,7 +460,7 @@ const MaqamTrainingScreen = () => {
           </View>
         </Modal>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -468,6 +469,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FAFAFA",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   content: {
     flex: 1,
