@@ -11,17 +11,17 @@ import {
   ViewStyle,
 } from "react-native";
 import { useSettings } from "@/context/SettingsContext";
-import { StackNavigationProp } from "@react-navigation/stack";
+import UpgradeModal from "@/components/ui/UpgradeModal";
+
 import { dictaionsLevels, Maqam } from "@/constants/scales";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 
 type LevelParams = {
   id: string;
   scale: string;
 };
-type RootStackParamList = {
-  "/Dictations/Dictaionsplay": LevelParams;
-};
+
 const buttonColors = [
   "#FF6B6B",
   "#4ECDC4",
@@ -32,6 +32,7 @@ const buttonColors = [
   "#FFB347",
 ];
 export default function DictaionsHome() {
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
   const { state, dispatch } = useSettings();
 
   const trainingLables = state.labels.basicTrainingPages.basicTrainingHome;
@@ -41,6 +42,7 @@ export default function DictaionsHome() {
 
     if (isLocked) {
       // بعدين هنضيف navigation لشاشة الـ Upgrade
+      setUpgradeModalVisible(true);
       console.log("هتفتح شاشة الـ Upgrade هنا");
       return;
     }
@@ -54,6 +56,10 @@ export default function DictaionsHome() {
     });
   };
 
+  const handleUpgrade = () => {
+    setUpgradeModalVisible(false);
+    console.log("Navigate to upgrade screen from IntroGame");
+  };
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
@@ -82,7 +88,7 @@ export default function DictaionsHome() {
                 opacity: isLocked ? 0.7 : 1,
               },
             ]}
-            activeOpacity={isLocked ? 0.8 : 0.8}
+            activeOpacity={0.8}
             onPress={() => handleLevelPress(level)}
           >
             <View
@@ -129,6 +135,11 @@ export default function DictaionsHome() {
           </TouchableOpacity>
         );
       })}
+      <UpgradeModal
+        visible={upgradeModalVisible}
+        onClose={() => setUpgradeModalVisible(false)}
+        onUpgrade={handleUpgrade}
+      />
     </ScrollView>
   );
 }

@@ -9,11 +9,11 @@ import {
   ViewStyle,
 } from "react-native";
 import { useSettings } from "../../context/SettingsContext";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
+import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const cadence = ["Do", "Re", "Mi", "Doo"];
 
@@ -83,12 +83,10 @@ type LevelParams = {
   levelChoices: number[];
   cadence: string[];
 };
-type RootStackParamList = {
-  "/IntroGame/Overview": undefined; // No parameters for the overview screen
-  "/IntroGame/Level1": LevelParams; // Level1 screen accepts LevelParams
-};
+
 export default function IntroGame() {
   const [scores, setScores] = useState<{ [key: string]: number }>({});
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
   const { state, dispatch } = useSettings();
 
   useFocusEffect(
@@ -108,6 +106,11 @@ export default function IntroGame() {
       fetchScores();
     }, [])
   );
+
+  const handleUpgrade = () => {
+    setUpgradeModalVisible(false);
+    console.log("Navigate to upgrade screen from IntroGame");
+  };
 
   const getBackgroundColor = (score: number | undefined): string => {
     if (!score) return "#be2e25"; // لون افتراضي لو السكور غير موجود
@@ -174,6 +177,7 @@ export default function IntroGame() {
             onPress={() => {
               if (isLocked) {
                 // بعدين هنضيف navigation لشاشة الـ Upgrade
+                setUpgradeModalVisible(true);
                 console.log("هتفتح شاشة الـ Upgrade هنا");
                 return;
               }
@@ -317,6 +321,11 @@ export default function IntroGame() {
           </TouchableOpacity>
         );
       })}
+      <UpgradeModal
+        visible={upgradeModalVisible}
+        onClose={() => setUpgradeModalVisible(false)}
+        onUpgrade={handleUpgrade}
+      />
     </ScrollView>
   );
 }

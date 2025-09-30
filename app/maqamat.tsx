@@ -10,6 +10,7 @@ import {
   examplesSoundFolders,
   Maqam,
 } from "@/constants/scales";
+import UpgradeModal from "@/components/ui/UpgradeModal";
 import { useFocusEffect } from "@react-navigation/native";
 import { Audio } from "expo-av";
 import {
@@ -86,7 +87,10 @@ const MaqamTrainingScreen = () => {
       };
     }, [selectedMaqams]) // شيلت hasReachedLimit من الـ dependencies
   );
-
+  const handleUpgrade = () => {
+    setUpgradeModalVisible(false);
+    console.log("Navigate to upgrade screen for Maqamat");
+  };
   const addTimer = (timer: number) => {
     timersRef.current.push(timer);
   };
@@ -397,68 +401,11 @@ const MaqamTrainingScreen = () => {
             </View>
           </Pressable>
         </Modal>
-        <Modal visible={upgradeModalVisible} transparent animationType="fade">
-          <View style={styles.upgradeModalContainer}>
-            <View style={styles.upgradeModalContent}>
-              <Ionicons name="lock-closed" size={48} color="#FF6B6B" />
-              <Text style={styles.upgradeTitle}>
-                {state.labels.upgradeRequired || "مطلوب ترقية"}
-              </Text>
-              <Text style={styles.upgradeMessage}>
-                {state.labels.freeLimitReached ||
-                  "لقد استخدمت جميع الأسئلة المجانية المتاحة"}
-              </Text>
-              <Text style={styles.upgradeSubtitle}>
-                {state.labels.upgradeToUnlock ||
-                  "قم بالترقية لإلغاء القفل والاستمتاع بجميع المزايا"}
-              </Text>
-
-              <View style={styles.upgradeFeatures}>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.unlimitedQuestions || "أسئلة غير محدودة"}
-                  </Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.allLevels || "جميع المستويات متاحة"}
-                  </Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.noAds || "بدون إعلانات"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.upgradeButtons}>
-                <TouchableOpacity
-                  style={styles.upgradeButton}
-                  onPress={() => {
-                    setUpgradeModalVisible(false);
-                    console.log("Navigate to upgrade screen for Maqamat");
-                  }}
-                >
-                  <Text style={styles.upgradeButtonText}>
-                    {state.labels.upgradeNow || "ترقية الآن"}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.laterButton}
-                  onPress={() => setUpgradeModalVisible(false)}
-                >
-                  <Text style={styles.laterButtonText}>
-                    {state.labels.maybeLater || "ربما لاحقاً"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        <UpgradeModal
+          visible={upgradeModalVisible}
+          onClose={() => setUpgradeModalVisible(false)}
+          onUpgrade={handleUpgrade}
+        />
       </ScrollView>
     </View>
   );

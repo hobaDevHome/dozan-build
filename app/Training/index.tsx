@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
+import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const buttonColors = [
   "#4ECDC4",
@@ -26,7 +27,9 @@ const buttonColors = [
 
 export default function TrainingMneu() {
   const [scores, setScores] = useState<{ [key: string]: number }>({});
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
   const { state, dispatch } = useSettings();
+
   const pageLables = state.labels.basicTrainingPages.basicTrainingHome;
 
   useFocusEffect(
@@ -63,6 +66,7 @@ export default function TrainingMneu() {
 
     if (isLocked) {
       // بعدين هنضيف navigation لشاشة الـ Upgrade
+      setUpgradeModalVisible(true);
       console.log("هتفتح شاشة الـ Upgrade هنا");
       return;
     }
@@ -77,6 +81,10 @@ export default function TrainingMneu() {
       },
     });
     router.push("/Training/TrainingScreen");
+  };
+  const handleUpgrade = () => {
+    setUpgradeModalVisible(false);
+    console.log("Navigate to upgrade screen from IntroGame");
   };
 
   return (
@@ -110,7 +118,7 @@ export default function TrainingMneu() {
                 opacity: isLocked ? 0.7 : 1,
               },
             ]}
-            activeOpacity={isLocked ? 0.6 : 0.8}
+            activeOpacity={0.8}
             onPress={() => handleLevelPress(level)}
           >
             <View
@@ -226,6 +234,11 @@ export default function TrainingMneu() {
           </TouchableOpacity>
         );
       })}
+      <UpgradeModal
+        visible={upgradeModalVisible}
+        onClose={() => setUpgradeModalVisible(false)}
+        onUpgrade={handleUpgrade}
+      />
     </ScrollView>
   );
 }

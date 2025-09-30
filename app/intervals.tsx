@@ -17,14 +17,15 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import { soundFolders } from "@/constants/scales";
 import OptionButton2 from "@/components/Buttons/OptionButton2";
+import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const intervalSteps: Record<string, string[]> = {
-  Unison: ["re", "re"],
+  "Unison": ["re", "re"],
   "Minor Second": ["re", "mi_b"],
   "Three Quarters": ["re", "mi_q"],
   "Major Second": ["re", "mi"],
   "Minor Third": ["re", "fa"],
-  Octave: ["re", "ree"],
+  "Octave": ["re", "ree"],
 };
 
 const IntervalTrainingScreen = () => {
@@ -391,65 +392,11 @@ const IntervalTrainingScreen = () => {
           </Pressable>
         </Modal>
 
-        <Modal visible={upgradeModalVisible} transparent animationType="fade">
-          <View style={styles.upgradeModalContainer}>
-            <View style={styles.upgradeModalContent}>
-              <Ionicons name="lock-closed" size={48} color="#FF6B6B" />
-              <Text style={styles.upgradeTitle}>
-                {state.labels.upgradeRequired || "مطلوب ترقية"}
-              </Text>
-              <Text style={styles.upgradeMessage}>
-                {state.labels.freeLimitReached ||
-                  "لقد استخدمت جميع الأسئلة المجانية المتاحة"}
-              </Text>
-              <Text style={styles.upgradeSubtitle}>
-                {state.labels.upgradeToUnlock ||
-                  "قم بالترقية لإلغاء القفل والاستمتاع بجميع المزايا"}
-              </Text>
-
-              <View style={styles.upgradeFeatures}>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.unlimitedQuestions || "أسئلة غير محدودة"}
-                  </Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.allLevels || "جميع المستويات متاحة"}
-                  </Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.featureText}>
-                    {state.labels.noAds || "بدون إعلانات"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.upgradeButtons}>
-                <TouchableOpacity
-                  style={styles.upgradeButton}
-                  onPress={handleUpgrade}
-                >
-                  <Text style={styles.upgradeButtonText}>
-                    {state.labels.upgradeNow || "ترقية الآن"}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.laterButton}
-                  onPress={() => setUpgradeModalVisible(false)}
-                >
-                  <Text style={styles.laterButtonText}>
-                    {state.labels.maybeLater || "ربما لاحقاً"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        <UpgradeModal
+          visible={upgradeModalVisible}
+          onClose={() => setUpgradeModalVisible(false)}
+          onUpgrade={handleUpgrade}
+        />
       </ScrollView>
     </View>
   );
