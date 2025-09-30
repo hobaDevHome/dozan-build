@@ -30,6 +30,15 @@ export default {
   correctAnswer: "Doğru cevap: ",
   chooseLables: "Ton Etiketlerini Seç",
   chooseAnAcitivity: "Eğitim Seç",
+  freeQuestions: "Free Questions", // أو "الأسئلة المجانية" في العربي
+  upgradeRequired: "Upgrade Required",
+  freeLimitReached: "You've used all available free questions",
+  upgradeToUnlock: "Upgrade to unlock and enjoy all features",
+  unlimitedQuestions: "Unlimited questions",
+  allLevels: "All levels available",
+  noAds: "No ads",
+  upgradeNow: "Upgrade Now",
+  maybeLater: "Maybe Later",
   keyLabels: {
     DoReMi: "Do, Re, Mi",
     Numbers: "1, 2, 3",

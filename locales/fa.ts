@@ -31,6 +31,15 @@ export default {
   correctAnswer: "پاسخ صحیح: ",
   chooseLables: "انتخاب برچسب‌های نت",
   chooseAnAcitivity: "انتخاب فعالیت",
+  freeQuestions: "Free Questions", // أو "الأسئلة المجانية" في العربي
+  upgradeRequired: "Upgrade Required",
+  freeLimitReached: "You've used all available free questions",
+  upgradeToUnlock: "Upgrade to unlock and enjoy all features",
+  unlimitedQuestions: "Unlimited questions",
+  allLevels: "All levels available",
+  noAds: "No ads",
+  upgradeNow: "Upgrade Now",
+  maybeLater: "Maybe Later",
   keyLabels: {
     DoReMi: "دو، ر، می",
     Numbers: "۱، ۲، ۳",

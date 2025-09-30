@@ -13,6 +13,7 @@ import {
 import { useSettings } from "@/context/SettingsContext";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { dictaionsLevels, Maqam } from "@/constants/scales";
+import { Ionicons } from "@expo/vector-icons";
 
 type LevelParams = {
   id: string;
@@ -31,10 +32,27 @@ const buttonColors = [
   "#FFB347",
 ];
 export default function DictaionsHome() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { state, dispatch } = useSettings();
 
   const trainingLables = state.labels.basicTrainingPages.basicTrainingHome;
+
+  const handleLevelPress = (level: any) => {
+    const isLocked = level.isPro && !state.isProUser;
+
+    if (isLocked) {
+      // بعدين هنضيف navigation لشاشة الـ Upgrade
+      console.log("هتفتح شاشة الـ Upgrade هنا");
+      return;
+    }
+
+    router.navigate({
+      pathname: "/Dictations/Dictaionsplay",
+      params: {
+        id: level.id,
+        scale: level.scale,
+      },
+    });
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -47,34 +65,70 @@ export default function DictaionsHome() {
           {state.labels.dictations.intro}
         </Text>
       </View>
-      {dictaionsLevels.map((level, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.button,
-            { backgroundColor: buttonColors[index % buttonColors.length] },
-            {
-              justifyContent:
-                state.language === "ar" || state.language === "fa"
-                  ? "flex-end"
-                  : "flex-start",
-            },
-          ]}
-          onPress={() =>
-            router.navigate({
-              pathname: "/Dictations/Dictaionsplay",
-              params: {
-                id: level.id,
-                scale: level.scale,
+      {dictaionsLevels.map((level, index) => {
+        const isLocked = level.isPro && !state.isProUser;
+
+        return (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.button,
+              { backgroundColor: buttonColors[index % buttonColors.length] },
+              {
+                justifyContent:
+                  state.language === "ar" || state.language === "fa"
+                    ? "flex-end"
+                    : "flex-start",
+                opacity: isLocked ? 0.7 : 1,
               },
-            })
-          }
-        >
-          <Text style={styles.buttonText}>
-            {level.id} : {trainingLables[level.scale as Maqam]}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            ]}
+            activeOpacity={isLocked ? 0.8 : 0.8}
+            onPress={() => handleLevelPress(level)}
+          >
+            <View
+              style={[
+                styles.testHeader,
+                {
+                  flexDirection:
+                    state.language === "ar" || state.language === "fa"
+                      ? "row-reverse"
+                      : "row",
+                },
+              ]}
+            >
+              <Text style={styles.buttonText}>
+                {level.id} : {trainingLables[level.scale as Maqam]}
+              </Text>
+
+              {/* الـ Pro Badge */}
+              {level.isPro && (
+                <View
+                  style={[
+                    styles.proBadge,
+                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
+                  ]}
+                >
+                  <Ionicons
+                    name={isLocked ? "lock-closed" : "star"}
+                    size={12}
+                    color={isLocked ? "#FFF" : "#000"}
+                  />
+                  <Text
+                    style={[
+                      styles.proBadgeText,
+                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
+                    ]}
+                  >
+                    PRO
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* الـ Lock Overlay إذا كان المستوى مقفول */}
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -134,5 +188,35 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#FFFFFF",
     flex: 1,
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  proBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  lockText: {
+    fontSize: 14,
+    color: "#FFF",
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });

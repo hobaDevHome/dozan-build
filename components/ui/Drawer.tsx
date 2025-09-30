@@ -34,7 +34,6 @@ const instruments = [
   { code: "oud", name: "oud", icon: "guitar-acoustic" },
 ];
 function CustomDrawerContent() {
-  const navigation = useNavigation<DrawerNavigationProp<any>>();
   const router = useRouter();
   const { state, dispatch } = useSettings();
   const [autoQuestion, setAutoQuestion] = useState<boolean>(false);
@@ -101,6 +100,12 @@ function CustomDrawerContent() {
     dispatch({
       type: "SET_BACKTOTONIC",
       payload: back,
+    });
+  };
+  const toggleIsProUser = (isPro: boolean) => {
+    dispatch({
+      type: "SET_IS_PRO_USER",
+      payload: isPro,
     });
   };
 
@@ -216,6 +221,20 @@ function CustomDrawerContent() {
           <Switch
             value={state.backToTonic}
             onValueChange={(value) => toggleBackToTonic(value)}
+            trackColor={{ false: "#E5E5E5", true: "#007AFF" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        {/* ////////////// testing pro //////////////// */}
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="return-up-back" size={18} color="#666" />
+
+            <Text style={styles.settingLabel}>pro user</Text>
+          </View>
+          <Switch
+            value={state.isProUser}
+            onValueChange={(value) => toggleIsProUser(value)}
             trackColor={{ false: "#E5E5E5", true: "#007AFF" }}
             thumbColor="#FFFFFF"
           />

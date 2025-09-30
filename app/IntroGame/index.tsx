@@ -18,13 +18,14 @@ import { useFocusEffect } from "@react-navigation/native";
 const cadence = ["Do", "Re", "Mi", "Doo"];
 
 const levels = [
-  { title: "Overview", levelChoices: [], maqamSection: 0 },
+  { title: "Overview", levelChoices: [], maqamSection: 0, isPro: false },
   {
     title: "1. Do, Re",
     levelChoices: [0, 1],
     maqamSection: 0,
     notes: ["Do", "Re"],
-    color: "#FF6B6B",
+    color: "#FFB347",
+    isPro: false, // مجاني
   },
   {
     title: "2. Do, Re, Mi",
@@ -32,6 +33,7 @@ const levels = [
     maqamSection: 0,
     notes: ["Do", "Re", "Mi"],
     color: "#4ECDC4",
+    isPro: false, // مجاني
   },
   {
     title: "3. Do, Re, Mi, Fa",
@@ -39,6 +41,7 @@ const levels = [
     maqamSection: 0,
     notes: ["Do", "Re", "Mi", "Fa"],
     color: "#45B7D1",
+    isPro: true,
   },
   {
     title: "4. Si, Do",
@@ -47,13 +50,15 @@ const levels = [
     maqamSection: 1,
     notes: ["Si", "Re"],
     color: "#96CEB4",
+    isPro: true,
   },
   {
     title: "5. La, Si, Do",
     levelChoices: [5, 7],
     maqamSection: 1,
     notes: ["La", "Si", "Do"],
-    color: "#ecd484",
+    color: "#FF6B6B",
+    isPro: true,
   },
   {
     title: "6. Sol, La, Si, Do",
@@ -61,13 +66,15 @@ const levels = [
     maqamSection: 1,
     notes: ["Sol", "La", "Si", "Do"],
     color: "#DDA0DD",
+    isPro: true,
   },
   {
     title: "7. The Whole Octave",
     levelChoices: [0, 7],
     maqamSection: 2,
     notes: ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si", "Do"],
-    color: "#FFB347",
+    color: "#ecd484",
+    isPro: true,
   },
 ];
 
@@ -81,7 +88,6 @@ type RootStackParamList = {
   "/IntroGame/Level1": LevelParams; // Level1 screen accepts LevelParams
 };
 export default function IntroGame() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [scores, setScores] = useState<{ [key: string]: number }>({});
   const { state, dispatch } = useSettings();
 
@@ -109,7 +115,6 @@ export default function IntroGame() {
     if (score <= 75) return "#f89901"; // لون متوسط (أصفر)
     return "#2eb163"; // لون جيد (أخضر)
   };
-
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -149,6 +154,9 @@ export default function IntroGame() {
       {levels.slice(1).map((test, index) => {
         const scoreKey = `score_level_${test.levelChoices.join("_")}`;
         const scorePercent = scores[scoreKey];
+        const isProLevel = test.isPro;
+        const isLocked = isProLevel && !state.isProUser;
+
         return (
           <TouchableOpacity
             key={test.title}
@@ -162,8 +170,13 @@ export default function IntroGame() {
                     : "flex-start",
               },
             ]}
-            activeOpacity={0.8}
+            activeOpacity={isLocked ? 0.6 : 0.8}
             onPress={() => {
+              if (isLocked) {
+                // بعدين هنضيف navigation لشاشة الـ Upgrade
+                console.log("هتفتح شاشة الـ Upgrade هنا");
+                return;
+              }
               dispatch({
                 type: "SET_GAME_PARAMS",
                 payload: {
@@ -195,16 +208,28 @@ export default function IntroGame() {
                   ]
                 }
               </Text>
-              <Text style={{ color: "#fff", marginLeft: 8, fontSize: 12 }}>
-                {scorePercent !== undefined ? scorePercent.toFixed(1) : "0.0"}%
-              </Text>
-              <TouchableOpacity style={styles.previewButton}>
-                <Ionicons
-                  name="play-circle-outline"
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
+              {isProLevel && (
+                <View
+                  style={[
+                    styles.proBadge,
+                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
+                  ]}
+                >
+                  <Ionicons
+                    name={isLocked ? "lock-closed" : "star"}
+                    size={12}
+                    color={isLocked ? "#FFF" : "#000"}
+                  />
+                  <Text
+                    style={[
+                      styles.proBadgeText,
+                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
+                    ]}
+                  >
+                    PRO
+                  </Text>
+                </View>
+              )}
             </View>
 
             <View
@@ -276,16 +301,18 @@ export default function IntroGame() {
                   ))}
                 </View>
               </View>
-              <View
-                style={[
-                  styles.percentageBox,
-                  { backgroundColor: getBackgroundColor(scorePercent) },
-                ]}
-              >
-                <Text style={{ color: "#fff", fontSize: 12 }}>
-                  {scorePercent !== undefined ? scorePercent.toFixed(0) : "0"} %
-                </Text>
-              </View>
+              {scorePercent !== undefined && scorePercent !== 0 && (
+                <View
+                  style={[
+                    styles.percentageBox,
+                    { backgroundColor: getBackgroundColor(scorePercent) },
+                  ]}
+                >
+                  <Text style={{ color: "#fff", fontSize: 12 }}>
+                    {scorePercent.toFixed(0)} %
+                  </Text>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         );
@@ -330,27 +357,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
   },
-  button1: {
-    backgroundColor: "#b9414c",
-  },
-  button2: {
-    backgroundColor: "#dda276",
-  },
-  button3: {
-    backgroundColor: "#3aa1ac",
-  },
-  button4: {
-    backgroundColor: "#e89e97",
-  },
-  button5: {
-    backgroundColor: "#839278",
-  },
-  button6: {
-    backgroundColor: "#d3803f",
-  },
-  button7: {
-    backgroundColor: "#b9414c",
-  },
+
   testCard: {
     borderRadius: 16,
     padding: 20,
@@ -429,5 +436,17 @@ const styles = StyleSheet.create({
     padding: 6,
     marginLeft: 8,
     marginRight: 8,
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  proBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

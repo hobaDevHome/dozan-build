@@ -18,12 +18,12 @@ import { soundFolders } from "@/constants/scales";
 import OptionButton2 from "@/components/Buttons/OptionButton2";
 
 const intervalSteps: Record<string, string[]> = {
-  "Unison": ["re", "re"],
+  Unison: ["re", "re"],
   "Minor Second": ["re", "mi_b"],
   "Three Quarters": ["re", "mi_q"],
   "Major Second": ["re", "mi"],
   "Minor Third": ["re", "fa"],
-  "Octave": ["re", "ree"],
+  Octave: ["re", "ree"],
 };
 
 const IntervalTrainingScreen = () => {
@@ -39,14 +39,18 @@ const IntervalTrainingScreen = () => {
   const [score, setScore] = useState({ correct: 0, incorrect: 0 });
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(0);
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
 
-  const { state } = useSettings();
+  const { state, dispatch } = useSettings();
   const lables = state.labels.intervalsTraingingPage;
 
   const soundRef = useRef<Audio.Sound | null>(null);
-  // ======================= التغيير الأول هنا =======================
-  // غيّرنا NodeJS.Timeout[] إلى number[]
+
   const timersRef = useRef<number[]>([]);
+  const hasReachedLimit =
+    !state.isProUser &&
+    state.freeQuestionsUsed.intervalTraining >= state.freeQuestionsLimit;
+
   useFocusEffect(
     useCallback(() => {
       setCurrentInterval(null);
@@ -57,25 +61,47 @@ const IntervalTrainingScreen = () => {
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
 
-      playInterval();
+      if (!hasReachedLimit) {
+        playInterval();
+      }
 
       return () => {
-        // دالة التنظيف أصبحت أبسط بكثير
-        if (soundRef.current) {
-          soundRef.current.stopAsync().catch(() => {});
-          soundRef.current.unloadAsync().catch(() => {});
-          soundRef.current = null;
-        }
+        // تنظيف آمن للـ sound
+        const cleanupSound = async () => {
+          if (soundRef.current) {
+            try {
+              await soundRef.current.stopAsync();
+              await soundRef.current.unloadAsync();
+            } catch (error) {
+              console.log("Cleanup error:", error);
+            } finally {
+              soundRef.current = null;
+            }
+          }
+        };
+
+        cleanupSound();
+
+        // تنظيف الـ timers
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [selectedIntervals])
+    }, [selectedIntervals, hasReachedLimit])
   );
 
-  // ======================= التغيير الثاني هنا =======================
-  // غيّرنا NodeJS.Timeout إلى number
+  const handleUpgrade = () => {
+    setUpgradeModalVisible(false);
+    // بعدين هنضيف navigation لشاشة الـ Upgrade
+    console.log("Navigate to upgrade screen");
+    // router.push("/upgrade");
+  };
 
   const playInterval = () => {
+    if (hasReachedLimit) {
+      setUpgradeModalVisible(true);
+      return;
+    }
+
     if (!selectedIntervals.length) return;
 
     setFirstAttempt(true);
@@ -83,6 +109,10 @@ const IntervalTrainingScreen = () => {
     setShowAnswer(false);
     setIsAnswered(false);
     setUserSelection(null);
+
+    if (!state.isProUser) {
+      dispatch({ type: "INCREMENT_INTERVAL_QUESTIONS" });
+    }
 
     const randomInterval =
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
@@ -135,37 +165,60 @@ const IntervalTrainingScreen = () => {
 
   const playSoundSequence = async (notes: string[]) => {
     setIsPlaying(true);
-    for (const note of notes) {
-      if (soundRef.current) {
-        await soundRef.current.stopAsync().catch(() => {});
-        await soundRef.current.unloadAsync().catch(() => {});
+
+    try {
+      for (const note of notes) {
+        // أوقفي وأزيلي الصوت الحالي إذا كان موجود
+        if (soundRef.current) {
+          try {
+            await soundRef.current.stopAsync();
+            await soundRef.current.unloadAsync();
+          } catch (error) {
+            console.log("Error cleaning up previous sound:", error);
+          }
+          soundRef.current = null;
+        }
+
+        const folder = soundFolders[state.instrument];
+        if (!folder) continue;
+
+        try {
+          const soundModule = folder(`./${note}.mp3`);
+          if (!soundModule) continue;
+
+          const { sound: soundObject } = await Audio.Sound.createAsync(
+            soundModule
+          );
+          soundRef.current = soundObject;
+          await soundObject.playAsync();
+
+          // انتظري لمدة 800 مللي ثانية لكل نوتة
+          await new Promise<void>((resolve) => {
+            const timer = setTimeout(() => {
+              resolve();
+            }, 800);
+            addTimer(timer);
+          });
+
+          // أوقفي وأزيلي الصوت بعد ما يخلص
+          if (soundRef.current) {
+            try {
+              await soundRef.current.stopAsync();
+              await soundRef.current.unloadAsync();
+            } catch (error) {
+              console.log("Error cleaning up sound after playback:", error);
+            }
+            soundRef.current = null;
+          }
+        } catch (error) {
+          console.error("Error playing sound:", error);
+        }
       }
-      const folder = soundFolders[state.instrument];
-      if (!folder) continue;
-
-      try {
-        const soundModule = folder(`./${note}.mp3`);
-        if (!soundModule) continue;
-
-        const { sound: soundObject } = await Audio.Sound.createAsync(
-          soundModule
-        );
-        soundRef.current = soundObject;
-        await soundObject.playAsync();
-
-        await new Promise<void>((resolve) => {
-          const timer = setTimeout(() => {
-            soundObject.stopAsync().catch(() => {});
-            soundObject.unloadAsync().catch(() => {});
-            resolve();
-          }, 800);
-          addTimer(timer); // الآن هذا السطر صحيح
-        });
-      } catch (error) {
-        console.error("Error playing sound:", error); // إضافة تسجيل للخطأ
-      }
+    } catch (error) {
+      console.error("Error in sound sequence:", error);
+    } finally {
+      setIsPlaying(false);
     }
-    setIsPlaying(false);
   };
 
   const toggleInterval = (interval: string) => {
@@ -183,7 +236,31 @@ const IntervalTrainingScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* ... باقي الكود JSX يبقى كما هو بدون أي تغيير ... */}
+        {!state.isProUser && (
+          <View style={styles.questionsCounter}>
+            <Text style={styles.counterText}>
+              {state.labels.freeQuestions}:{" "}
+              {state.freeQuestionsUsed.intervalTraining}/
+              {state.freeQuestionsLimit}
+            </Text>
+            <Text style={styles.counterSubtitle}>(في تدريب المسافات)</Text>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${
+                      (state.freeQuestionsUsed.intervalTraining /
+                        state.freeQuestionsLimit) *
+                      100
+                    }%`,
+                    backgroundColor: hasReachedLimit ? "#FF6B6B" : "#4CAF50",
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        )}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -312,6 +389,66 @@ const IntervalTrainingScreen = () => {
               </View>
             </View>
           </Pressable>
+        </Modal>
+
+        <Modal visible={upgradeModalVisible} transparent animationType="fade">
+          <View style={styles.upgradeModalContainer}>
+            <View style={styles.upgradeModalContent}>
+              <Ionicons name="lock-closed" size={48} color="#FF6B6B" />
+              <Text style={styles.upgradeTitle}>
+                {state.labels.upgradeRequired || "مطلوب ترقية"}
+              </Text>
+              <Text style={styles.upgradeMessage}>
+                {state.labels.freeLimitReached ||
+                  "لقد استخدمت جميع الأسئلة المجانية المتاحة"}
+              </Text>
+              <Text style={styles.upgradeSubtitle}>
+                {state.labels.upgradeToUnlock ||
+                  "قم بالترقية لإلغاء القفل والاستمتاع بجميع المزايا"}
+              </Text>
+
+              <View style={styles.upgradeFeatures}>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.unlimitedQuestions || "أسئلة غير محدودة"}
+                  </Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.allLevels || "جميع المستويات متاحة"}
+                  </Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.noAds || "بدون إعلانات"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.upgradeButtons}>
+                <TouchableOpacity
+                  style={styles.upgradeButton}
+                  onPress={handleUpgrade} // غيري من onPress المباشر ل handleUpgrade
+                >
+                  <Text style={styles.upgradeButtonText}>
+                    {state.labels.upgradeNow || "ترقية الآن"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.laterButton}
+                  onPress={() => setUpgradeModalVisible(false)}
+                >
+                  <Text style={styles.laterButtonText}>
+                    {state.labels.maybeLater || "ربما لاحقاً"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
       </ScrollView>
     </SafeAreaView>
@@ -597,6 +734,121 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: "#f0f0f0",
     opacity: 0.6,
+  },
+  questionsCounter: {
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  counterText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  counterSubtitle: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+
+  // Upgrade Modal Styles
+  upgradeModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 20,
+  },
+  upgradeModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    width: "100%",
+    maxWidth: 400,
+  },
+  upgradeTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  upgradeMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  upgradeSubtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  upgradeFeatures: {
+    width: "100%",
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  featureText: {
+    fontSize: 14,
+    color: "#333",
+    marginLeft: 12,
+    flex: 1,
+  },
+  upgradeButtons: {
+    width: "100%",
+    gap: 12,
+  },
+  upgradeButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  upgradeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  laterButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#DDD",
+  },
+  laterButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

@@ -8,34 +8,22 @@ import {
   View,
 } from "react-native";
 import { useSettings } from "@/context/SettingsContext";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { trainigLevels } from "@/constants/scales";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import TrainingListen from "./listen";
 
-type RootStackParamList = {
-  "play": PlayParams;
-  "Training/TrainingScreen": PlayParams;
-};
 const buttonColors = [
-  "#FF6B6B",
   "#4ECDC4",
   "#45B7D1",
   "#96CEB4",
   "#ecd484",
   "#DDA0DD",
   "#FFB347",
+  "#FF6B6B",
 ];
 
-type PlayParams = {
-  id: string;
-  scale: string;
-  levelChoices: string[];
-  label: string;
-};
 export default function TrainingMneu() {
   const [scores, setScores] = useState<{ [key: string]: number }>({});
   const { state, dispatch } = useSettings();
@@ -65,10 +53,30 @@ export default function TrainingMneu() {
     }, [])
   );
   const getBackgroundColor = (score: number | undefined): string => {
-    if (!score) return "#be2e25"; // لون افتراضي لو السكور غير موجود
-    if (score <= 50) return "#be2e25"; // لون للجودة المنخفضة (أحمر)
-    if (score <= 75) return "#f89901"; // لون متوسط (أصفر)
-    return "#2eb163"; // لون جيد (أخضر)
+    if (!score) return "#be2e25";
+    if (score <= 50) return "#be2e25";
+    if (score <= 75) return "#f89901";
+    return "#2eb163";
+  };
+  const handleLevelPress = (level: any) => {
+    const isLocked = level.isPro && !state.isProUser;
+
+    if (isLocked) {
+      // بعدين هنضيف navigation لشاشة الـ Upgrade
+      console.log("هتفتح شاشة الـ Upgrade هنا");
+      return;
+    }
+
+    dispatch({
+      type: "SET_TRAINING_PARAMS",
+      payload: {
+        id: level.id,
+        scale: level.scale,
+        levelChoices: level.levelChoices,
+        label: level.label,
+      },
+    });
+    router.push("/Training/TrainingScreen");
   };
 
   return (
@@ -86,6 +94,8 @@ export default function TrainingMneu() {
           "_"
         )}`;
         const scorePercent = scores[storageKey];
+        const isLocked = level.isPro && !state.isProUser;
+
         return (
           <TouchableOpacity
             key={index}
@@ -97,20 +107,11 @@ export default function TrainingMneu() {
                   state.language === "ar" || state.language === "fa"
                     ? "flex-end"
                     : "flex-start",
+                opacity: isLocked ? 0.7 : 1,
               },
             ]}
-            onPress={() => {
-              dispatch({
-                type: "SET_TRAINING_PARAMS",
-                payload: {
-                  id: level.id,
-                  scale: level.scale,
-                  levelChoices: level.levelChoices,
-                  label: level.label,
-                },
-              });
-              router.push("/Training/TrainingScreen");
-            }}
+            activeOpacity={isLocked ? 0.6 : 0.8}
+            onPress={() => handleLevelPress(level)}
           >
             <View
               style={[
@@ -122,7 +123,6 @@ export default function TrainingMneu() {
                       : "row",
                 },
               ]}
-              key={index}
             >
               <Text style={styles.buttonText}>
                 {level.id} :{" "}
@@ -137,16 +137,32 @@ export default function TrainingMneu() {
                   : pageLables.wholescale}
               </Text>
 
-              <TouchableOpacity style={styles.previewButton}>
-                <Ionicons
-                  name="play-circle-outline"
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
+              {/* الـ Pro Badge */}
+              {level.isPro && (
+                <View
+                  style={[
+                    styles.proBadge,
+                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
+                  ]}
+                >
+                  <Ionicons
+                    name={isLocked ? "lock-closed" : "star"}
+                    size={12}
+                    color={isLocked ? "#FFF" : "#000"}
+                  />
+                  <Text
+                    style={[
+                      styles.proBadgeText,
+                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
+                    ]}
+                  >
+                    PRO
+                  </Text>
+                </View>
+              )}
             </View>
 
-            {/* diff */}
+            {/* الـ Difficulty Container */}
             <View
               style={[
                 styles.difficultyContainer,
@@ -193,16 +209,19 @@ export default function TrainingMneu() {
                   ))}
                 </View>
               </View>
-              <View
-                style={[
-                  styles.percentageBox,
-                  { backgroundColor: getBackgroundColor(scorePercent) },
-                ]}
-              >
-                <Text style={{ color: "#fff", fontSize: 12 }}>
-                  {scorePercent !== undefined ? scorePercent.toFixed(0) : "0"} %
-                </Text>
-              </View>
+              {scorePercent !== undefined && scorePercent !== 0 && (
+                <View
+                  style={[
+                    styles.percentageBox,
+                    { backgroundColor: getBackgroundColor(scorePercent) },
+                  ]}
+                >
+                  <Text style={{ color: "#fff", fontSize: 12 }}>
+                    {scorePercent !== undefined ? scorePercent.toFixed(0) : "0"}{" "}
+                    %
+                  </Text>
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         );
@@ -297,5 +316,33 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 16,
     right: 16,
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  proBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  lockOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  lockText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "bold",
+    marginLeft: 4,
   },
 });

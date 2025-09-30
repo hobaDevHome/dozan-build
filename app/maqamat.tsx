@@ -43,23 +43,23 @@ const MaqamTrainingScreen = () => {
     useState(false);
   const [firstAttempt, setFirstAttempt] = useState(true);
   const [questionNumber, setQuestionNumber] = useState(0);
+  const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
 
-  const { state } = useSettings();
+  const { state, dispatch } = useSettings();
+
   const lables = state.labels.maqamatTraingingPage;
   const maqamsListFromLacale =
     state.labels.basicTrainingPages.basicTrainingHome;
+  const hasReachedLimit =
+    !state.isProUser &&
+    state.freeQuestionsUsed.maqamatTraining >= state.freeQuestionsLimit;
 
-  // --- Refs لإدارة الحالة بدون إعادة رندر ---
   const soundRef = useRef<Audio.Sound | null>(null);
-  // ======================= التغيير الأول هنا =======================
-  // غيّرنا NodeJS.Timeout[] إلى number[]
+
   const timersRef = useRef<number[]>([]);
 
-  // ======================= الحل المركزي باستخدام useFocusEffect =======================
   useFocusEffect(
     useCallback(() => {
-      // هذا الكود يعمل عند الدخول إلى الشاشة
-      // إعادة ضبط الحالة بالكامل عند كل دخول جديد
       setIsPlaying(false);
       setCurrentMaqam(null);
       setUserSelection(null);
@@ -70,27 +70,23 @@ const MaqamTrainingScreen = () => {
       setFirstAttempt(true);
       setShowExampleControlButton(false);
 
-      // بدء أول سؤال عند الدخول
-      playMaqam();
+      if (!hasReachedLimit) {
+        playMaqam();
+      }
 
-      // --- دالة التنظيف (الأهم): تعمل عند الخروج من الشاشة ---
       return () => {
-        // 1. إيقاف وتفريغ أي صوت يعمل حاليًا
         if (soundRef.current) {
           soundRef.current.stopAsync().catch(() => {});
           soundRef.current.unloadAsync().catch(() => {});
           soundRef.current = null;
         }
-        // 2. إلغاء جميع المؤقتات المعلقة
+
         timersRef.current.forEach(clearTimeout);
         timersRef.current = [];
       };
-    }, [selectedMaqams]) // إعادة تشغيل التأثير إذا تغيرت قائمة المقامات المختارة
+    }, [selectedMaqams, hasReachedLimit])
   );
-  // ======================= نهاية الحل =======================
 
-  // ======================= التغيير الثاني هنا =======================
-  // غيّرنا NodeJS.Timeout إلى number
   const addTimer = (timer: number) => {
     timersRef.current.push(timer);
   };
@@ -99,16 +95,28 @@ const MaqamTrainingScreen = () => {
     if (!soundName) return;
     setIsPlaying(true);
 
+    // تنظيف آمن للصوت الحالي
     if (soundRef.current) {
-      await soundRef.current.stopAsync().catch(() => {});
-      await soundRef.current.unloadAsync().catch(() => {});
+      try {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+      } catch (error) {
+        console.log("Error cleaning up previous sound:", error);
+      }
+      soundRef.current = null;
     }
 
-    if (!folder) return setIsPlaying(false);
+    if (!folder) {
+      setIsPlaying(false);
+      return;
+    }
 
     try {
       const soundModule = folder(`./${soundName}.mp3`);
-      if (!soundModule) return setIsPlaying(false);
+      if (!soundModule) {
+        setIsPlaying(false);
+        return;
+      }
 
       const { sound: soundObject } = await Audio.Sound.createAsync(soundModule);
       soundRef.current = soundObject;
@@ -116,7 +124,11 @@ const MaqamTrainingScreen = () => {
 
       soundObject.setOnPlaybackStatusUpdate(async (status: any) => {
         if (status.isLoaded && status.didJustFinish) {
-          await soundObject.unloadAsync().catch(() => {});
+          try {
+            await soundObject.unloadAsync();
+          } catch (error) {
+            console.log("Error unloading sound:", error);
+          }
           if (soundRef.current === soundObject) {
             soundRef.current = null;
           }
@@ -124,11 +136,16 @@ const MaqamTrainingScreen = () => {
         }
       });
     } catch (error) {
+      console.error("Error playing sound:", error);
       setIsPlaying(false);
     }
   };
 
   const playMaqam = () => {
+    if (hasReachedLimit) {
+      setUpgradeModalVisible(true);
+      return;
+    }
     if (!selectedMaqams.length) return;
 
     setIsExamplePlaying(false);
@@ -138,6 +155,10 @@ const MaqamTrainingScreen = () => {
     setQuestionNumber((prev) => prev + 1);
     setShowAnswer(false);
     setIsAnswered(false);
+
+    if (!state.isProUser) {
+      dispatch({ type: "INCREMENT_MAQAMAT_QUESTIONS" });
+    }
 
     const randomMaqam =
       selectedMaqams[Math.floor(Math.random() * selectedMaqams.length)];
@@ -216,7 +237,31 @@ const MaqamTrainingScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* ... باقي الكود JSX يبقى كما هو بدون أي تغيير ... */}
+        {!state.isProUser && (
+          <View style={styles.questionsCounter}>
+            <Text style={styles.counterText}>
+              {state.labels.freeQuestions || "الأسئلة المجانية"}:{" "}
+              {state.freeQuestionsUsed.maqamatTraining}/
+              {state.freeQuestionsLimit}
+            </Text>
+            <Text style={styles.counterSubtitle}>(في تدريب المقامات)</Text>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${
+                      (state.freeQuestionsUsed.maqamatTraining /
+                        state.freeQuestionsLimit) *
+                      100
+                    }%`,
+                    backgroundColor: hasReachedLimit ? "#FF6B6B" : "#4CAF50",
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        )}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -350,6 +395,68 @@ const MaqamTrainingScreen = () => {
               </View>
             </View>
           </Pressable>
+        </Modal>
+        <Modal visible={upgradeModalVisible} transparent animationType="fade">
+          <View style={styles.upgradeModalContainer}>
+            <View style={styles.upgradeModalContent}>
+              <Ionicons name="lock-closed" size={48} color="#FF6B6B" />
+              <Text style={styles.upgradeTitle}>
+                {state.labels.upgradeRequired || "مطلوب ترقية"}
+              </Text>
+              <Text style={styles.upgradeMessage}>
+                {state.labels.freeLimitReached ||
+                  "لقد استخدمت جميع الأسئلة المجانية المتاحة"}
+              </Text>
+              <Text style={styles.upgradeSubtitle}>
+                {state.labels.upgradeToUnlock ||
+                  "قم بالترقية لإلغاء القفل والاستمتاع بجميع المزايا"}
+              </Text>
+
+              <View style={styles.upgradeFeatures}>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.unlimitedQuestions || "أسئلة غير محدودة"}
+                  </Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.allLevels || "جميع المستويات متاحة"}
+                  </Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Text style={styles.featureText}>
+                    {state.labels.noAds || "بدون إعلانات"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.upgradeButtons}>
+                <TouchableOpacity
+                  style={styles.upgradeButton}
+                  onPress={() => {
+                    setUpgradeModalVisible(false);
+                    console.log("Navigate to upgrade screen for Maqamat");
+                  }}
+                >
+                  <Text style={styles.upgradeButtonText}>
+                    {state.labels.upgradeNow || "ترقية الآن"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.laterButton}
+                  onPress={() => setUpgradeModalVisible(false)}
+                >
+                  <Text style={styles.laterButtonText}>
+                    {state.labels.maybeLater || "ربما لاحقاً"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
       </ScrollView>
     </SafeAreaView>
@@ -651,6 +758,121 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: "#f0f0f0",
     opacity: 0.6,
+  },
+  questionsCounter: {
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  counterText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  counterSubtitle: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+
+  // Upgrade Modal Styles
+  upgradeModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 20,
+  },
+  upgradeModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    width: "100%",
+    maxWidth: 400,
+  },
+  upgradeTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  upgradeMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  upgradeSubtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  upgradeFeatures: {
+    width: "100%",
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  featureText: {
+    fontSize: 14,
+    color: "#333",
+    marginLeft: 12,
+    flex: 1,
+  },
+  upgradeButtons: {
+    width: "100%",
+    gap: 12,
+  },
+  upgradeButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  upgradeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  laterButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#DDD",
+  },
+  laterButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

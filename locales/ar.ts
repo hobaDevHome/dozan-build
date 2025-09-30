@@ -36,6 +36,16 @@ export default {
   language: "اللغة",
   settingsText: "تغيير اللغة للعربية",
   appHeader: "Maqami",
+
+  freeQuestions: "Free Questions", // أو "الأسئلة المجانية" في العربي
+  upgradeRequired: "Upgrade Required",
+  freeLimitReached: "You've used all available free questions",
+  upgradeToUnlock: "Upgrade to unlock and enjoy all features",
+  unlimitedQuestions: "Unlimited questions",
+  allLevels: "All levels available",
+  noAds: "No ads",
+  upgradeNow: "Upgrade Now",
+  maybeLater: "Maybe Later",
   homePage: {
     testYouEar: "اختبر أذنك",
     knowAboutMaqams: "تعرف على المقامات",

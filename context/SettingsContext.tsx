@@ -13,6 +13,12 @@ type State = {
   instrument: string;
   autoQuestionJump: boolean;
   backToTonic: boolean;
+  isProUser: boolean;
+  freeQuestionsUsed: {
+    intervalTraining: number;
+    maqamatTraining: number;
+  };
+  freeQuestionsLimit: number;
   trainingParams: {
     id: string;
     scale: string;
@@ -32,6 +38,10 @@ type Action =
   | { type: "SET_INSTRUMENT"; payload: string }
   | { type: "SET_AUTOQUESTIONJUMP"; payload: boolean }
   | { type: "SET_BACKTOTONIC"; payload: boolean }
+  | { type: "SET_IS_PRO_USER"; payload: boolean }
+  | { type: "INCREMENT_INTERVAL_QUESTIONS" }
+  | { type: "INCREMENT_MAQAMAT_QUESTIONS" }
+  | { type: "RESET_ALL_QUESTIONS" }
   | {
       type: "SET_TRAINING_PARAMS";
       payload: {
@@ -57,6 +67,12 @@ const initialState: State = {
   instrument: "piano",
   autoQuestionJump: false,
   backToTonic: true,
+  isProUser: false,
+  freeQuestionsUsed: {
+    intervalTraining: 0,
+    maqamatTraining: 0,
+  },
+  freeQuestionsLimit: 5,
   trainingParams: {
     id: "",
     scale: "",
@@ -102,6 +118,29 @@ const settingsReducer = (state: State, action: Action): State => {
       return { ...state, autoQuestionJump: action.payload };
     case "SET_BACKTOTONIC":
       return { ...state, backToTonic: action.payload };
+
+    case "SET_IS_PRO_USER":
+      return {
+        ...state,
+        isProUser: action.payload,
+      };
+
+    case "INCREMENT_INTERVAL_QUESTIONS":
+      return {
+        ...state,
+        freeQuestionsUsed: {
+          ...state.freeQuestionsUsed,
+          intervalTraining: state.freeQuestionsUsed.intervalTraining + 1,
+        },
+      };
+    case "INCREMENT_MAQAMAT_QUESTIONS":
+      return {
+        ...state,
+        freeQuestionsUsed: {
+          ...state.freeQuestionsUsed,
+          maqamatTraining: state.freeQuestionsUsed.maqamatTraining + 1,
+        },
+      };
 
     case "SET_TRAINING_PARAMS":
       return {
