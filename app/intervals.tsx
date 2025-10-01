@@ -22,17 +22,15 @@ import UpgradeModal from "@/components/ui/UpgradeModal";
 const intervalSteps: Record<string, string[]> = {
   "Unison": ["re", "re"],
   "Minor Second": ["re", "mi_b"],
-  "Three Quarters": ["re", "mi_q"],
   "Major Second": ["re", "mi"],
+  "Three Quarters": ["re", "mi_q"],
   "Minor Third": ["re", "fa"],
   "Octave": ["re", "ree"],
 };
 
 const IntervalTrainingScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedIntervals, setSelectedIntervals] = useState<string[]>(
-    Object.keys(intervalSteps)
-  );
+
   const [currentInterval, setCurrentInterval] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [userSelection, setUserSelection] = useState<string | null>(null);
@@ -48,11 +46,15 @@ const IntervalTrainingScreen = () => {
 
   const soundRef = useRef<Audio.Sound | null>(null);
   const timersRef = useRef<number[]>([]);
+  const [selectedIntervals, setSelectedIntervals] = useState<string[]>([]);
 
-  // التصحيح هنا: نتحقق فقط إذا الأسئلة المستخدمة >= الحد
-  const hasReachedLimit =
-    !state.isProUser &&
-    state.freeQuestionsUsed.intervalTraining >= state.freeQuestionsLimit;
+  useEffect(() => {
+    if (state.isProUser) {
+      setSelectedIntervals(Object.keys(intervalSteps));
+    } else {
+      setSelectedIntervals(Object.keys(intervalSteps).slice(0, 3));
+    }
+  }, [state.isProUser]);
 
   useFocusEffect(
     useCallback(() => {
@@ -64,10 +66,7 @@ const IntervalTrainingScreen = () => {
       setQuestionNumber(0);
       setScore({ correct: 0, incorrect: 0 });
 
-      // ابدأ بسؤال أول فقط إذا مش وصل للحد
-      if (!hasReachedLimit) {
-        playInterval();
-      }
+      playInterval();
 
       return () => {
         const cleanupSound = async () => {
@@ -94,14 +93,12 @@ const IntervalTrainingScreen = () => {
     setUpgradeModalVisible(false);
     console.log("Navigate to upgrade screen");
   };
+  const getProIntervals = () => {
+    const allIntervals = Object.keys(intervalSteps);
+    return allIntervals.slice(3); // Intervals from index 3 to end are Pro
+  };
 
   const playInterval = () => {
-    // التصحيح هنا: تحقق من الحد قبل أي حاجة
-    if (hasReachedLimit) {
-      setUpgradeModalVisible(true);
-      return;
-    }
-
     if (!selectedIntervals.length) return;
 
     setFirstAttempt(true);
@@ -109,11 +106,6 @@ const IntervalTrainingScreen = () => {
     setShowAnswer(false);
     setIsAnswered(false);
     setUserSelection(null);
-
-    // زيادة العداد
-    if (!state.isProUser) {
-      dispatch({ type: "INCREMENT_INTERVAL_QUESTIONS" });
-    }
 
     const randomInterval =
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
@@ -222,6 +214,11 @@ const IntervalTrainingScreen = () => {
   };
 
   const toggleInterval = (interval: string) => {
+    const proIntervals = getProIntervals();
+    if (proIntervals.includes(interval) && !state.isProUser) {
+      setUpgradeModalVisible(true);
+      return;
+    }
     setSelectedIntervals((prev) =>
       prev.includes(interval)
         ? prev.filter((i) => i !== interval)
@@ -237,31 +234,6 @@ const IntervalTrainingScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {!state.isProUser && (
-          <View style={styles.questionsCounter}>
-            <Text style={styles.counterText}>
-              {state.labels.freeQuestions}:
-              {state.freeQuestionsUsed.intervalTraining}/
-              {state.freeQuestionsLimit}
-            </Text>
-
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${
-                      (state.freeQuestionsUsed.intervalTraining /
-                        state.freeQuestionsLimit) *
-                      100
-                    }%`,
-                    backgroundColor: hasReachedLimit ? "#FF6B6B" : "#4CAF50",
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        )}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -306,7 +278,7 @@ const IntervalTrainingScreen = () => {
 
         <View style={styles.maqamatContainer}>
           <View style={styles.maqamatGrid}>
-            {Object.keys(intervalSteps).map((interval) => (
+            {selectedIntervals.map((interval) => (
               <TouchableOpacity
                 key={interval}
                 style={[
@@ -362,20 +334,33 @@ const IntervalTrainingScreen = () => {
                 </Text>
                 <Text style={styles.chooseText}>{lables.chooseIntervals}:</Text>
                 <View style={styles.intervalSelectionContainer}>
-                  {Object.keys(intervalSteps).map((interval) => (
-                    <OptionButton2
-                      label={
-                        intervalsListFromLacale[
-                          interval as keyof typeof intervalsListFromLacale
-                        ]
-                      }
-                      key={interval}
-                      selectedIntervals={selectedIntervals}
-                      interval={interval}
-                      toggleInterval={toggleInterval}
-                    />
-                  ))}
+                  {Object.keys(intervalSteps).map((interval) => {
+                    const proIntervals = getProIntervals();
+                    const isProInterval = proIntervals.includes(interval);
+                    const isLocked = isProInterval && !state.isProUser;
+                    return (
+                      <OptionButton2
+                        label={
+                          intervalsListFromLacale[
+                            interval as keyof typeof intervalsListFromLacale
+                          ]
+                        }
+                        key={interval}
+                        isLocked={isLocked}
+                        selectedIntervals={selectedIntervals}
+                        interval={interval}
+                        toggleInterval={() => {
+                          if (isLocked) {
+                            setUpgradeModalVisible(true);
+                          } else {
+                            toggleInterval(interval);
+                          }
+                        }}
+                      />
+                    );
+                  })}
                 </View>
+
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={toggleModal}
@@ -796,6 +781,25 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 16,
     fontWeight: "600",
+  },
+  proBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  lockOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  lockText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "bold",
+    marginLeft: 4,
   },
 });
 
