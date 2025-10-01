@@ -63,34 +63,36 @@ const intervalSteps: Record<string, string[][]> = {
     ["fa", "sol"],
     ["sol", "la"],
     ["la", "si"],
-    ["si", "do_d"],
+    ["si", "doo_d"],
     ["doo", "ree"],
-    ["ree", "mii"],
+
     ["sol_b", "la_b"],
-    ["do_b", "re_b"],
+
     ["re_b", "mi_b"],
     ["mi_b", "fa"],
-    ["fa_b", "sol_b"],
+
     ["la_b", "si_b"],
-    ["si_b", "do"],
+    ["si_b", "doo"],
   ],
   "Three Quarters": [
     ["do", "re_q"],
     ["re", "mi_q"],
     ["mi", "fa_d_q"],
+
     ["fa", "sol_q"],
     ["sol", "la_q"],
     ["la", "si_q"],
-    ["si", "do_d_q"],
+    ["si", "doo_d_q"],
+
     ["doo", "ree_q"],
     ["ree", "mii_q"],
     ["sol_b", "la_b_q"],
-    ["do_b", "re_b_q"],
+
     ["re_b", "mi_b_q"],
     ["mi_b", "fa_q"],
-    ["fa_b", "sol_b_q"],
+
     ["la_b", "si_b_q"],
-    ["si_b", "do_q"],
+    ["si_b", "doo_q"],
   ],
   "Minor Third": [
     ["do", "mi_b"],
@@ -99,22 +101,18 @@ const intervalSteps: Record<string, string[][]> = {
     ["fa", "la_b"],
     ["sol", "si_b"],
     ["la", "do"],
-    ["si", "re"],
-    ["doo", "mii_b"],
-    ["do_b", "mi"],
+    ["si", "ree"],
+
     ["re_b", "mi"],
     ["mi_b", "sol_b"],
     ["fa_d", "la"],
     ["la_b", "si"],
-    ["si_b", "re_b"],
+    ["si_b", "ree_b"],
   ],
   "Octave": [
     ["do", "doo"],
     ["re", "ree"],
-    ["mi", "mii"],
-    ["do_b", "doo_b"],
     ["re_b", "ree_b"],
-    ["mi_b", "mii_b"],
     ["mi_q", "mii_q"],
   ],
 };
@@ -147,6 +145,7 @@ const IntervalTrainingScreen = () => {
       setSelectedIntervals(Object.keys(intervalSteps));
     } else {
       setSelectedIntervals(Object.keys(intervalSteps).slice(0, 3));
+      // setSelectedIntervals(Object.keys(intervalSteps));
     }
   }, [state.isProUser]);
 
