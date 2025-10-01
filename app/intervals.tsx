@@ -19,19 +19,46 @@ import { soundFolders } from "@/constants/scales";
 import OptionButton2 from "@/components/Buttons/OptionButton2";
 import UpgradeModal from "@/components/ui/UpgradeModal";
 
-const intervalSteps: Record<string, string[]> = {
-  "Unison": ["re", "re"],
-  "Minor Second": ["re", "mi_b"],
-  "Major Second": ["re", "mi"],
-  "Three Quarters": ["re", "mi_q"],
-  "Minor Third": ["re", "fa"],
-  "Octave": ["re", "ree"],
+const intervalSteps: Record<string, string[][]> = {
+  "Unison": [
+    ["re", "re"],
+    ["do", "do"],
+    ["mi", "mi"],
+  ],
+  "Minor Second": [
+    ["re", "mi_b"],
+    ["do", "re_b"],
+    ["mi", "fa"],
+  ],
+  "Major Second": [
+    ["re", "mi"],
+    ["do", "re"],
+    ["mi", "fa#"],
+  ],
+  "Three Quarters": [
+    ["re", "mi_q"],
+    ["do", "re_q"],
+    ["mi", "fa_q"],
+  ],
+  "Minor Third": [
+    ["re", "fa"],
+    ["do", "mi_b"],
+    ["mi", "sol"],
+  ],
+  "Octave": [
+    ["re", "ree"],
+    ["do", "doo"],
+    ["mi", "mii"],
+  ],
 };
 
 const IntervalTrainingScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const [currentInterval, setCurrentInterval] = useState<string | null>(null);
+  const [currentIntervalSound, setCurrentIntervalSound] = useState<string[]>(
+    []
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [userSelection, setUserSelection] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(true);
@@ -112,18 +139,26 @@ const IntervalTrainingScreen = () => {
     setCurrentInterval(randomInterval);
 
     const notesToPlay = intervalSteps[randomInterval];
-    playSoundSequence(notesToPlay);
+    console.log("Playing interval:", randomInterval);
+
+    const noteSequences = intervalSteps[randomInterval];
+    const randomNotes =
+      noteSequences[Math.floor(Math.random() * noteSequences.length)];
+
+    setCurrentIntervalSound(randomNotes); // نخزن الصوت الحالي
+
+    playSoundSequence(randomNotes);
   };
 
   const playSpecificInterval = (intervalName: string) => {
     const notesToPlay = intervalSteps[intervalName];
-    playSoundSequence(notesToPlay);
+    playSoundSequence(currentIntervalSound);
   };
 
   const repeatInterval = () => {
     if (currentInterval) {
       const notesToPlay = intervalSteps[currentInterval];
-      playSoundSequence(notesToPlay);
+      playSoundSequence(currentIntervalSound);
     }
   };
 
