@@ -21,34 +21,101 @@ import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const intervalSteps: Record<string, string[][]> = {
   "Unison": [
-    ["re", "re"],
     ["do", "do"],
+    ["re", "re"],
     ["mi", "mi"],
+    ["fa", "fa"],
+    ["sol", "sol"],
+    ["la", "la"],
+    ["si", "si"],
+    ["doo", "doo"],
+    ["ree", "ree"],
+    ["mi_q", "mi_q"],
+    ["fa_d", "fa_d"],
+    ["sol_q", "sol_q"],
+    ["la_q", "la_q"],
+    ["si_q", "si_q"],
+    ["re_b", "re_b"],
+    ["mi_b", "mi_b"],
+    ["sol_b", "sol_b"],
+    ["la_b", "la_b"],
+    ["si_b", "si_b"],
   ],
   "Minor Second": [
-    ["re", "mi_b"],
     ["do", "re_b"],
+    ["re", "mi_b"],
     ["mi", "fa"],
+    ["fa", "sol_b"],
+    ["sol", "la_b"],
+    ["la", "si_b"],
+    ["si", "doo"],
+    ["doo", "ree_b"],
+    ["mi_b", "mi"],
+    ["fa_d", "sol"],
+    ["sol_b", "sol"],
+    ["la_b", "la"],
+    ["si_b", "si"],
   ],
   "Major Second": [
-    ["re", "mi"],
     ["do", "re"],
-    ["mi", "fa#"],
+    ["re", "mi"],
+    ["mi", "fa_d"],
+    ["fa", "sol"],
+    ["sol", "la"],
+    ["la", "si"],
+    ["si", "do_d"],
+    ["doo", "ree"],
+    ["ree", "mii"],
+    ["sol_b", "la_b"],
+    ["do_b", "re_b"],
+    ["re_b", "mi_b"],
+    ["mi_b", "fa"],
+    ["fa_b", "sol_b"],
+    ["la_b", "si_b"],
+    ["si_b", "do"],
   ],
   "Three Quarters": [
-    ["re", "mi_q"],
     ["do", "re_q"],
-    ["mi", "fa_q"],
+    ["re", "mi_q"],
+    ["mi", "fa_d_q"],
+    ["fa", "sol_q"],
+    ["sol", "la_q"],
+    ["la", "si_q"],
+    ["si", "do_d_q"],
+    ["doo", "ree_q"],
+    ["ree", "mii_q"],
+    ["sol_b", "la_b_q"],
+    ["do_b", "re_b_q"],
+    ["re_b", "mi_b_q"],
+    ["mi_b", "fa_q"],
+    ["fa_b", "sol_b_q"],
+    ["la_b", "si_b_q"],
+    ["si_b", "do_q"],
   ],
   "Minor Third": [
-    ["re", "fa"],
     ["do", "mi_b"],
+    ["re", "fa"],
     ["mi", "sol"],
+    ["fa", "la_b"],
+    ["sol", "si_b"],
+    ["la", "do"],
+    ["si", "re"],
+    ["doo", "mii_b"],
+    ["do_b", "mi"],
+    ["re_b", "mi"],
+    ["mi_b", "sol_b"],
+    ["fa_d", "la"],
+    ["la_b", "si"],
+    ["si_b", "re_b"],
   ],
   "Octave": [
-    ["re", "ree"],
     ["do", "doo"],
+    ["re", "ree"],
     ["mi", "mii"],
+    ["do_b", "doo_b"],
+    ["re_b", "ree_b"],
+    ["mi_b", "mii_b"],
+    ["mi_q", "mii_q"],
   ],
 };
 
@@ -138,9 +205,6 @@ const IntervalTrainingScreen = () => {
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
     setCurrentInterval(randomInterval);
 
-    const notesToPlay = intervalSteps[randomInterval];
-    console.log("Playing interval:", randomInterval);
-
     const noteSequences = intervalSteps[randomInterval];
     const randomNotes =
       noteSequences[Math.floor(Math.random() * noteSequences.length)];
@@ -148,6 +212,7 @@ const IntervalTrainingScreen = () => {
     setCurrentIntervalSound(randomNotes); // نخزن الصوت الحالي
 
     playSoundSequence(randomNotes);
+    console.log("Playing interval:", randomNotes);
   };
 
   const playSpecificInterval = (intervalName: string) => {
