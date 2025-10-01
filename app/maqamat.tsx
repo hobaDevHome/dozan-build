@@ -71,10 +71,7 @@ const MaqamTrainingScreen = () => {
       setFirstAttempt(true);
       setShowExampleControlButton(false);
 
-      // ابدأ بسؤال أول فقط إذا مش وصل للحد
-      if (!hasReachedLimit) {
-        playMaqam();
-      }
+      playMaqam();
 
       return () => {
         if (soundRef.current) {
@@ -146,10 +143,6 @@ const MaqamTrainingScreen = () => {
   };
 
   const playMaqam = () => {
-    if (hasReachedLimit) {
-      setUpgradeModalVisible(true);
-      return;
-    }
     if (!selectedMaqams.length) return;
 
     setIsExamplePlaying(false);
@@ -159,10 +152,6 @@ const MaqamTrainingScreen = () => {
     setQuestionNumber((prev) => prev + 1);
     setShowAnswer(false);
     setIsAnswered(false);
-
-    if (!state.isProUser) {
-      dispatch({ type: "INCREMENT_MAQAMAT_QUESTIONS" });
-    }
 
     const randomMaqam =
       selectedMaqams[Math.floor(Math.random() * selectedMaqams.length)];
@@ -177,6 +166,10 @@ const MaqamTrainingScreen = () => {
   };
 
   const playExample = () => {
+    if (!state.isProUser) {
+      setUpgradeModalVisible(true);
+      return;
+    }
     if (!currentMaqam) return;
 
     const currentExamplesList = maqamsExamplesLists[currentMaqam as Maqam];
@@ -242,31 +235,6 @@ const MaqamTrainingScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* {!state.isProUser && (
-          <View style={styles.questionsCounter}>
-            <Text style={styles.counterText}>
-              {state.labels.freeQuestions || "الأسئلة المجانية"}:{" "}
-              {state.freeQuestionsUsed.maqamatTraining}/
-              {state.freeQuestionsLimit}
-            </Text>
-
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${
-                      (state.freeQuestionsUsed.maqamatTraining /
-                        state.freeQuestionsLimit) *
-                      100
-                    }%`,
-                    backgroundColor: hasReachedLimit ? "#FF6B6B" : "#4CAF50",
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        )} */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{score.correct}</Text>
@@ -313,10 +281,29 @@ const MaqamTrainingScreen = () => {
           <TouchableOpacity
             style={[styles.controlButton, styles.nextButton]}
             onPress={playExample}
-            disabled={isPlaying}
           >
             <Ionicons name="mic" size={24} color="#FFFFFF" />
             <Text style={styles.controlButtonText}>{lables.example}</Text>
+            <View
+              style={[
+                styles.proBadge,
+                { backgroundColor: !state.isProUser ? "#e09f13" : "#FFD700" },
+              ]}
+            >
+              <Ionicons
+                name={!state.isProUser ? "lock-closed" : "star"}
+                size={12}
+                color={!state.isProUser ? "#FFF" : "#000"}
+              />
+              <Text
+                style={[
+                  styles.proBadgeText,
+                  { color: !state.isProUser ? "#FFF" : "#000", marginLeft: 4 },
+                ]}
+              >
+                PRO
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -411,7 +398,6 @@ const MaqamTrainingScreen = () => {
   );
 };
 
-// --- الأنماط تبقى كما هي ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -822,6 +808,34 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 16,
     fontWeight: "600",
+  },
+  proBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  proBadgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  lockOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  lockText: {
+    fontSize: 10,
+    color: "#FFF",
+    fontWeight: "bold",
+    marginLeft: 4,
   },
 });
 
