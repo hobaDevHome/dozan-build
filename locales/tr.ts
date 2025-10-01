@@ -261,8 +261,8 @@ export default {
       Hegaz: "Hicaz",
       Kurd: "Kürdî",
       threeQuarterTone: "Üç Çeyrek Ton",
-      firstHalf: "Dizinin İlk Yarısı",
-      secondHalf: "Dizinin İkinci Yarısı",
+      firstHalf: "Dizinin İlk ",
+      secondHalf: "Dizinin İkinci ",
       wholescale: "Tüm Dizi",
     },
     basicTrainingLevel: {

@@ -260,8 +260,8 @@ export default {
       Hegaz: "حجاز",
       Kurd: "كرد",
       threeQuarterTone: "ثلاث ارباع النغمة",
-      firstHalf: "النصف الاول من المقام",
-      secondHalf: "النصف الثاني من المقام",
+      firstHalf: "النصف الاول ",
+      secondHalf: "النصف الثاني ",
       wholescale: "المقام كامل",
     },
     basicTrainingLevel: {

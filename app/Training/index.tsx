@@ -133,7 +133,7 @@ export default function TrainingMneu() {
               ]}
             >
               <Text style={styles.buttonText}>
-                {level.id} :{" "}
+                {level.id}:
                 {pageLables.hasOwnProperty(level.scale)
                   ? pageLables[level.scale as keyof typeof pageLables]
                   : level.scale}{" "}
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 16,
-    padding: 24,
+    padding: 12,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   testName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#FFFFFF",
     flex: 1,

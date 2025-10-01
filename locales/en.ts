@@ -266,8 +266,8 @@ export default {
       Hegaz: "Hegaz",
       Kurd: "Kurd",
       threeQuarterTone: "Three-Quarter Tone",
-      firstHalf: "First Half of scale",
-      secondHalf: "Second Half of scale",
+      firstHalf: "First Half",
+      secondHalf: "Second Half",
       wholescale: "Whole scale",
     },
     basicTrainingLevel: {
