@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import UpgradeModal from "@/components/ui/UpgradeModal";
+import GoldenCrown from "@/components/ui/GoldenCrown";
 
 const buttonColors = [
   "#4ECDC4",
@@ -115,7 +116,6 @@ export default function TrainingMneu() {
                   state.language === "ar" || state.language === "fa"
                     ? "flex-end"
                     : "flex-start",
-                opacity: isLocked ? 0.7 : 1,
               },
             ]}
             activeOpacity={0.8}
@@ -133,7 +133,7 @@ export default function TrainingMneu() {
               ]}
             >
               <Text style={styles.buttonText}>
-                {level.id}:
+                {level.id}:{" "}
                 {pageLables.hasOwnProperty(level.scale)
                   ? pageLables[level.scale as keyof typeof pageLables]
                   : level.scale}{" "}
@@ -145,29 +145,7 @@ export default function TrainingMneu() {
                   : pageLables.wholescale}
               </Text>
 
-              {/* الـ Pro Badge */}
-              {level.isPro && (
-                <View
-                  style={[
-                    styles.proBadge,
-                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
-                  ]}
-                >
-                  <Ionicons
-                    name={isLocked ? "lock-closed" : "star"}
-                    size={12}
-                    color={isLocked ? "#FFF" : "#000"}
-                  />
-                  <Text
-                    style={[
-                      styles.proBadgeText,
-                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
-                    ]}
-                  >
-                    PRO
-                  </Text>
-                </View>
-              )}
+              {level.isPro && <GoldenCrown size={18} isLocked={isLocked} />}
             </View>
 
             {/* الـ Difficulty Container */}
@@ -254,12 +232,10 @@ const styles = StyleSheet.create({
     backgroundColor: "orange",
     borderRadius: 8,
     padding: 6,
-    marginLeft: 8,
-    marginRight: 8,
   },
   button: {
     borderRadius: 16,
-    padding: 12,
+    padding: 18,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
@@ -299,15 +275,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  testName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    flex: 1,
-  },
-  previewButton: {
-    padding: 4,
-  },
+
   difficultyContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -324,38 +292,5 @@ const styles = StyleSheet.create({
     marginRight: 4,
     flexDirection: "row",
     gap: 2,
-  },
-  selectedIndicator: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-  },
-  proBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  proBadgeText: {
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  lockOverlay: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  lockText: {
-    fontSize: 10,
-    color: "#FFF",
-    fontWeight: "bold",
-    marginLeft: 4,
   },
 });

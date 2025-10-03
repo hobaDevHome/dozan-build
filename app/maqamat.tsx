@@ -1,7 +1,7 @@
 import OptionButton2 from "@/components/Buttons/OptionButton2";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useSettings } from "../context/SettingsContext";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   scalesLists,
   maqamsSoundFolders,
@@ -24,9 +24,9 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import GoldenCrown from "@/components/ui/GoldenCrown";
 
 const MaqamTrainingScreen = () => {
-  // --- المتغيرات الأصلية للمكون ---
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMaqams, setSelectedMaqams] = useState<string[]>(
     Object.keys(scalesLists)
@@ -284,26 +284,11 @@ const MaqamTrainingScreen = () => {
           >
             <Ionicons name="mic" size={24} color="#FFFFFF" />
             <Text style={styles.controlButtonText}>{lables.example}</Text>
-            <View
-              style={[
-                styles.proBadge,
-                { backgroundColor: !state.isProUser ? "#e09f13" : "#FFD700" },
-              ]}
-            >
-              <Ionicons
-                name={!state.isProUser ? "lock-closed" : "star"}
-                size={12}
-                color={!state.isProUser ? "#FFF" : "#000"}
-              />
-              <Text
-                style={[
-                  styles.proBadgeText,
-                  { color: !state.isProUser ? "#FFF" : "#000", marginLeft: 4 },
-                ]}
-              >
-                PRO
-              </Text>
-            </View>
+            {!state.isProUser && (
+              <View style={styles.crownBadge}>
+                <GoldenCrown size={18} isLocked />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -557,6 +542,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
   },
   exampleControlButton: {
     padding: 10,
@@ -566,6 +552,13 @@ const styles = StyleSheet.create({
     // Add background/border if needed
     backgroundColor: "#9cdde2",
     borderRadius: 10,
+  },
+  crownBadge: {
+    marginLeft: 6,
+    position: "absolute",
+    top: -10,
+    left: -15,
+    zIndex: 1,
   },
   scoreContainer: {
     flexDirection: "row",

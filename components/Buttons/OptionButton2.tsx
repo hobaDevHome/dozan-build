@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-
+import GoldenCrown from "../ui/GoldenCrown";
 type OptionButtonProps = {
   interval: string;
   label: string;
@@ -26,25 +25,8 @@ const OptionButton: React.FC<OptionButtonProps> = ({
       onPress={() => toggleInterval(interval)}
     >
       {isLocked && (
-        <View
-          style={[
-            styles.proBadge,
-            { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
-          ]}
-        >
-          <Ionicons
-            name={isLocked ? "lock-closed" : "star"}
-            size={12}
-            color={isLocked ? "#FFF" : "#000"}
-          />
-          <Text
-            style={[
-              styles.proBadgeText,
-              { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
-            ]}
-          >
-            PRO
-          </Text>
+        <View style={styles.crownBadge}>
+          <GoldenCrown size={18} isLocked={isLocked} />
         </View>
       )}
       <Text
@@ -71,6 +53,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
+    position: "relative",
   },
   selected: { backgroundColor: "#e286e2" },
   selectedText: { color: "#fff" },
@@ -102,6 +85,13 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "bold",
     marginLeft: 4,
+  },
+  crownBadge: {
+    marginLeft: 6,
+    position: "absolute",
+    top: -10,
+    left: -15,
+    zIndex: 1,
   },
 });
 

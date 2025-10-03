@@ -16,6 +16,7 @@ import UpgradeModal from "@/components/ui/UpgradeModal";
 import { dictaionsLevels, Maqam } from "@/constants/scales";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import GoldenCrown from "@/components/ui/GoldenCrown";
 
 type LevelParams = {
   id: string;
@@ -85,7 +86,6 @@ export default function DictaionsHome() {
                   state.language === "ar" || state.language === "fa"
                     ? "flex-end"
                     : "flex-start",
-                opacity: isLocked ? 0.7 : 1,
               },
             ]}
             activeOpacity={0.8}
@@ -106,32 +106,8 @@ export default function DictaionsHome() {
                 {level.id} : {trainingLables[level.scale as Maqam]}
               </Text>
 
-              {/* الـ Pro Badge */}
-              {level.isPro && (
-                <View
-                  style={[
-                    styles.proBadge,
-                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
-                  ]}
-                >
-                  <Ionicons
-                    name={isLocked ? "lock-closed" : "star"}
-                    size={12}
-                    color={isLocked ? "#FFF" : "#000"}
-                  />
-                  <Text
-                    style={[
-                      styles.proBadgeText,
-                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
-                    ]}
-                  >
-                    PRO
-                  </Text>
-                </View>
-              )}
+              {level.isPro && <GoldenCrown size={18} isLocked={isLocked} />}
             </View>
-
-            {/* الـ Lock Overlay إذا كان المستوى مقفول */}
           </TouchableOpacity>
         );
       })}
@@ -154,7 +130,9 @@ const styles = StyleSheet.create({
 
   button: {
     borderRadius: 16,
-    padding: 24,
+    justifyContent: "center",
+
+    padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
@@ -192,7 +170,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
   },
   testName: {
     fontSize: 18,

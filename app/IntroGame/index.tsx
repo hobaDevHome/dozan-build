@@ -14,6 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import UpgradeModal from "@/components/ui/UpgradeModal";
+import GoldenCrown from "@/components/ui/GoldenCrown";
+import AppText from "@/components/ui/AppText";
 
 const cadence = ["Do", "Re", "Mi", "Doo"];
 
@@ -147,9 +149,9 @@ export default function IntroGame() {
         activeOpacity={0.8}
         onPress={() => router.navigate("/IntroGame/Overview")}
       >
-        <Text style={styles.buttonText}>
+        <AppText style={styles.buttonText}>
           {state.labels.introGamePage.pages.overview}
-        </Text>
+        </AppText>
       </TouchableOpacity>
 
       {/* level buttons */}
@@ -173,12 +175,10 @@ export default function IntroGame() {
                     : "flex-start",
               },
             ]}
-            activeOpacity={isLocked ? 0.6 : 0.8}
+            activeOpacity={isLocked ? 0.8 : 0.8}
             onPress={() => {
               if (isLocked) {
-                // بعدين هنضيف navigation لشاشة الـ Upgrade
                 setUpgradeModalVisible(true);
-                console.log("هتفتح شاشة الـ Upgrade هنا");
                 return;
               }
               dispatch({
@@ -203,7 +203,7 @@ export default function IntroGame() {
               ]}
               key={index}
             >
-              <Text style={styles.testName}>
+              <AppText style={styles.testName}>
                 {
                   state.labels.introGamePage.pages[
                     `level${
@@ -211,29 +211,9 @@ export default function IntroGame() {
                     }` as keyof typeof state.labels.introGamePage.pages
                   ]
                 }
-              </Text>
-              {isProLevel && (
-                <View
-                  style={[
-                    styles.proBadge,
-                    { backgroundColor: isLocked ? "#098a9b" : "#FFD700" },
-                  ]}
-                >
-                  <Ionicons
-                    name={isLocked ? "lock-closed" : "star"}
-                    size={12}
-                    color={isLocked ? "#FFF" : "#000"}
-                  />
-                  <Text
-                    style={[
-                      styles.proBadgeText,
-                      { color: isLocked ? "#FFF" : "#000", marginLeft: 4 },
-                    ]}
-                  >
-                    PRO
-                  </Text>
-                </View>
-              )}
+              </AppText>
+
+              {isProLevel && <GoldenCrown size={18} isLocked={isLocked} />}
             </View>
 
             <View
@@ -381,10 +361,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     position: "relative",
   },
-  testCardSelected: {
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-  },
+
   testHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -397,9 +374,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     flex: 1,
   },
-  previewButton: {
-    padding: 4,
-  },
+
   notesContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -434,28 +409,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 2,
   },
-  selectedIndicator: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-  },
+
   percentageBox: {
     backgroundColor: "orange",
     borderRadius: 8,
     padding: 6,
-    marginLeft: 8,
-    marginRight: 8,
-  },
-  proBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-  proBadgeText: {
-    fontSize: 10,
-    fontWeight: "bold",
   },
 });
