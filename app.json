@@ -23,7 +23,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
         "backgroundImage": "./assets/images/adaptive-icon-background.png",
-        "backgroundColor": "#cddae2"
+        "backgroundColor": "#fff"
       },
       "package": "com.hobaexpoaccount.maqami",
       "versionCode": 3,
@@ -42,16 +42,14 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#cddae2"
+          "backgroundColor": "#fff"
         }
       ],
       "expo-asset",
       [
         "expo-custom-assets",
         {
-          "assetsPaths": [
-            "./assets/sounds"
-          ],
+          "assetsPaths": ["./assets/sounds"],
           "preserveFolder": true
         }
       ]
