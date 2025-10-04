@@ -27,7 +27,7 @@ const DOTS_HEIGHT = 130;
 const ITEM_WIDTH = Math.round(SLIDER_WIDTH * 1);
 
 const data = [
-  { id: "1", component: Page1 },
+  // { id: "1", component: Page1 },
   { id: "2", component: Page2 },
   { id: "3", component: Page3 },
   { id: "4", component: Page4 },

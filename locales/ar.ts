@@ -1,7 +1,7 @@
 export default {
   welcome: "مرحبًا بك في نوت كويست",
   introGame: "اللعبة التمهيدية",
-  learnMethod: "اساسيات الموسيقى",
+  learnMethod: "اساسيات ",
   basicTraining: "التدريب الأساسي",
   melodicDictations: "إملاءات لحنية",
   intervals: "فواصل موسيقية",
@@ -24,7 +24,7 @@ export default {
   backToTonic: "لعب النغمات حتى درجة الركوز",
   chooseInstrument: "اختر الآلة",
   chooseLables: "اختر اسماء النغمات",
-  chooseAnAcitivity: "اختر نشاط",
+  chooseAnAcitivity: "اختر نشاطا",
   keyLabels: {
     DoReMi: "دو ، ري ، مي",
     Numbers: "1, 2, 3",
