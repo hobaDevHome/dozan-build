@@ -28,7 +28,7 @@ const Overview = () => {
 
       {/* sec4 */}
 
-      <AppText style={styles.text}>{overviewLabels.textSections.sec4}</AppText>
+      {/* <AppText style={styles.text}>{overviewLabels.textSections.sec4}</AppText> */}
       {/* sec5  - sec 5 span*/}
       <AppText style={styles.text}>
         <AppText style={{ fontWeight: "bold" }}>
@@ -73,7 +73,7 @@ const Overview = () => {
       {/* {/* sec13/} */}
       <AppText style={styles.text}>{overviewLabels.textSections.sec13}</AppText>
       {/* {/* sec14/} */}
-      <AppText style={styles.text}>{overviewLabels.textSections.sec14}</AppText>
+      {/* <AppText style={styles.text}>{overviewLabels.textSections.sec14}</AppText> */}
       {/* {/* sec15/} */}
       <AppText style={styles.text}>{overviewLabels.textSections.sec15}</AppText>
     </ScrollView>
