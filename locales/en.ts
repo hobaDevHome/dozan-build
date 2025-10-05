@@ -79,30 +79,31 @@ export default {
     overViewPage: {
       header: "Overview",
       textSections: {
-        sec1: "You are very lucky!",
-        sec2: "This app is based on an easy ear training method with outstanding results.",
-        sec3: " And all you need to do is play for a few minutes every day. Plus, you'll have fun doing it!",
-        sec4: " Each level consists of 10 questions, and every question involves three steps.",
-        sec5: "Each question starts by playing the main tones in Agam maqam.",
+        sec1: "You’re in for a treat!",
+        sec2: "This app uses a simple ear training approach that delivers great results.",
+        sec3: "All it takes is just a few minutes of practice each day — and it’s fun too!",
+        sec4: "Every level has 10 questions, and each question is split into three steps.",
+        sec5: "At the start of each question, you’ll hear the main tones of the Agam maqam.",
         sec5span: "Step 1:",
-        sec6: "Don't worry if you don't understand these terms yet.",
-        sec7: "Listen to this notes like it's a regular piece of music. There's no need to listen too hard",
-        sec8: "After hearing them, your brain will automatically tune itself to the key Agam maqam. Then, you will naturally hear all of the following notes in relation to this key.",
-        sec9: "After you listen to the cadence, you will hear one random tone (note).",
+        sec6: "No need to worry if the terms sound unfamiliar right now.",
+        sec7: "Just listen to the notes as if you’re hearing a short melody. Don’t overthink it.",
+        sec8: "After listening, your brain naturally adjusts to the key of the Agam maqam. From then on, you’ll hear the next notes in relation to that key.",
+        sec9: "Next, you’ll hear one random note after the cadence.",
         sec9span: "Step 2:",
-        sec99: "During the first level, that tone will only be “Do” or “Re”.",
+        sec99:
+          "In the first level, this note will only be either “Do” or “Re”.",
         sec10:
-          "Try to notice how steady and stable “Do” (the tonic) feels. Then, listen for how “Re” wants to resolve into “Do”.",
-        sec11: "Now, your goal is to guess the given tone.",
+          "Notice how steady and strong “Do” feels. Compare it to “Re”, which naturally wants to return to “Do”.",
+        sec11: "Your task is to identify which note you heard.",
         sec11span: "Step 3:",
         sec12:
-          "After you provide the correct answer, you will hear how this tone resolves into the nearest tonic, “Do”.",
+          "Once you choose the right answer, you’ll hear how that note resolves back to the tonic, “Do”.",
         sec13:
-          "By listening to these resolutions, you will soon remember all the tones. It is also extremely helpful to sing along with the resolutions.",
+          "By repeating these exercises, you’ll quickly recognize all the tones. Singing along with the resolutions makes the learning even stronger.",
         sec14:
-          "To unlock the next level, you need to guess 8 out of 10 tones correctly.",
+          "To move to the next level, you need to get at least 8 out of 10 answers correct.",
         sec15:
-          " Take your time. By practicing for just 10 minutes a day, you will easily complete all of the levels in a month. Or can you do it faster?!",
+          "Go at your own pace. With just 10 minutes of practice daily, you can finish all the levels in a month — maybe even faster!",
       },
     },
     levelPage: {

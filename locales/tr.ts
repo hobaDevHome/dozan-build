@@ -75,30 +75,30 @@ export default {
     overViewPage: {
       header: "Genel Bakış",
       textSections: {
-        sec1: "Çok şanslısınız!",
-        sec2: "Bu uygulama, belki de dünyanın en kolay kulak eğitimi yöntemine dayanmaktadır. Dünya çapında yüz binlerce kişi bu yöntemi olağanüstü sonuçlarla kullandı.",
-        sec3: "Ve tek yapmanız gereken, her gün sadece 10 dakika oynamak. Üstelik eğlenerek öğreneceksiniz!",
-        sec4: "Her seviye 10 sorudan oluşur ve her soru üç adımdan oluşur.",
-        sec5: "Her soru, Do majör tonunda bir kadans çalınarak başlar.",
+        sec1: "Çok şanslısın!",
+        sec2: "Bu uygulama basit bir işitsel eğitim yöntemi üzerine kuruludur ve harika sonuçlar verir.",
+        sec3: "Her gün sadece birkaç dakika çalışman yeterli — üstelik eğlenceli de!",
+        sec4: "Her seviye 10 sorudan oluşur ve her soru üç adıma ayrılır.",
+        sec5: "Her sorunun başında Acem makamının ana seslerini dinleyeceksin.",
         sec5span: "Adım 1:",
-        sec6: "Bu terimleri henüz anlamıyorsanız endişelenmeyin.",
-        sec7: "Bu kadansı normal bir müzik parçası gibi dinleyin. Çok fazla odaklanmanıza gerek yok.",
-        sec8: "Kadansı dinledikten sonra beyniniz otomatik olarak Do majör tonuna ayarlanacaktır. Sonraki notaların hepsini bu tona göre doğal olarak duyacaksınız.",
-        sec9: "Kadansı dinledikten sonra rastgele bir nota duyacaksınız.",
+        sec6: "Bu terimleri şimdi anlamasan da sorun değil.",
+        sec7: "Notaları sanki kısa bir müzik parçasıymış gibi dinle. Fazla düşünmeye gerek yok.",
+        sec8: "Dinledikten sonra beynin otomatik olarak Acem makamına uyum sağlar ve sonraki notaları bu tona göre duyarsın.",
+        sec9: "Kadansı dinledikten sonra rastgele bir nota çalınır.",
         sec9span: "Adım 2:",
-        sec99: "İlk seviyede bu nota yalnızca “Do” veya “Re” olacaktır.",
+        sec99: "İlk seviyede bu nota sadece “Do” veya “Re” olacaktır.",
         sec10:
-          "“Do”nun (tonik) ne kadar sabit ve kararlı hissettirdiğine dikkat edin. Sonra, “Re”nin nasıl “Do”ya çözülmek istediğini dinleyin.",
-        sec11: "Şimdi amacınız verilen notayı tahmin etmek.",
+          "“Do”nun ne kadar sağlam ve kararlı hissettirdiğine dikkat et. Ardından “Re”nin doğal olarak “Do”ya dönmek istediğini fark et.",
+        sec11: "Şimdi amacın duyduğun notayı tahmin etmek.",
         sec11span: "Adım 3:",
         sec12:
-          "Doğru cevabı verdikten sonra, bu notanın en yakın tonik olan “Do”ya nasıl çözüldüğünü duyacaksınız.",
+          "Doğru cevabı seçtikten sonra bu notanın nasıl “Do”ya çözüldüğünü duyacaksın.",
         sec13:
-          "Bu çözülmeleri dinleyerek tüm notaları kısa sürede hatırlayacaksınız. Ayrıca çözülmelere eşlik ederek söylemek çok faydalıdır.",
+          "Bu alıştırmaları tekrar ederek tüm notaları kısa sürede ezberleyeceksin. Çözümlerle birlikte söylemek öğrenmeyi daha da kolaylaştırır.",
         sec14:
-          "Bir sonraki seviyenin kilidini açmak için 10 sorudan 8’ini doğru tahmin etmelisiniz.",
+          "Bir sonraki seviyeyi açmak için 10 sorudan en az 8’ini doğru bilmelisin.",
         sec15:
-          "Acelemiz yok. Günde sadece 10 dakika çalışarak bir ayda tüm seviyeleri kolayca tamamlayabilirsiniz. Ya da daha hızlı bitirebilir misiniz?!",
+          "Kendi hızında ilerle. Günde sadece 10 dakikalık pratikle tüm seviyeleri bir ay içinde bitirebilirsin — belki daha da hızlı!",
       },
     },
     levelPage: {
