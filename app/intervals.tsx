@@ -20,12 +20,12 @@ import OptionButton2 from "@/components/Buttons/OptionButton2";
 import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const intervalSteps: Record<string, string[]> = {
-  Unison: ["re", "re"],
+  "Unison": ["re", "re"],
   "Minor Second": ["re", "mi_b"],
   "Major Second": ["re", "mi"],
   "Three Quarters": ["re", "mi_q"],
   "Minor Third": ["re", "fa"],
-  Octave: ["re", "ree"],
+  "Octave": ["re", "ree"],
 };
 type IntervalType =
   | "Unison"
@@ -40,11 +40,11 @@ const intervalStepsObject: Record<
   IntervalType,
   Record<StartingNoteType, string[]>
 > = {
-  Unison: {
+  "Unison": {
     do: ["do", "do"],
     re: ["re", "re"],
-    mi: ["mi", "mi"],
     re_b: ["re_b", "re_b"],
+    mi: ["mi", "mi"],
     mi_b: ["mi_b", "mi_b"],
     mi_q: ["mi_q", "mi_q"],
   },
@@ -80,7 +80,7 @@ const intervalStepsObject: Record<
     mi_b: ["mi_b", "sol_b"],
     mi_q: ["mi_q", "sol_q"],
   },
-  Octave: {
+  "Octave": {
     do: ["do", "doo"],
     re: ["re", "ree"],
     mi: ["mi", "mii"],
@@ -210,11 +210,12 @@ const IntervalTrainingScreen = () => {
 
     if (currentIntervalSound.length > 0 && currentInterval) {
       const currentStartingNote = currentIntervalSound[0];
+
       const intervalData =
-        intervalStepsObject[
-          currentInterval as keyof typeof intervalStepsObject
-        ];
+        intervalStepsObject[intervalName as keyof typeof intervalStepsObject];
+
       const notesToPlay = intervalData[currentStartingNote as StartingNoteType];
+
       playSoundSequence(notesToPlay);
     }
   };
