@@ -27,6 +27,74 @@ const intervalSteps: Record<string, string[]> = {
   "Minor Third": ["re", "fa"],
   Octave: ["re", "ree"],
 };
+type IntervalType =
+  | "Unison"
+  | "Minor Second"
+  | "Major Second"
+  | "Three Quarters"
+  | "Minor Third"
+  | "Octave";
+
+type StartingNoteType = "do" | "re" | "mi" | "do_b" | "re_b" | "mi_b" | "mi_q";
+const intervalStepsObject: Record<
+  IntervalType,
+  Record<StartingNoteType, string[]>
+> = {
+  Unison: {
+    do: ["do", "do"],
+    re: ["re", "re"],
+    mi: ["mi", "mi"],
+    do_b: ["do_b", "doo_b"],
+    re_b: ["re_b", "ree_b"],
+    mi_b: ["mi_b", "mii_b"],
+    mi_q: ["mi_q", "mii_q"],
+  },
+  "Minor Second": {
+    do: ["do", "re_b"],
+    re: ["re", "mi_b"],
+    mi: ["mi", "fa"],
+    do_b: ["do_b", "do"],
+    re_b: ["re_b", "re"],
+    mi_b: ["mi_b", "mi"],
+    mi_q: ["mi_q", "fa_q"],
+  },
+  "Major Second": {
+    do: ["do", "re"],
+    re: ["re", "mi"],
+    mi: ["mi", "fa_d"],
+    do_b: ["do_b", "re_b"],
+    re_b: ["re_b", "mi_b"],
+    mi_b: ["mi_b", "fa"],
+    mi_q: ["mi_q", "fa_d_q"],
+  },
+  "Three Quarters": {
+    do: ["do", "re_q"],
+    re: ["re", "mi_q"],
+    mi: ["mi", "fa_d_q"],
+    do_b: ["do_b", "do_d_q"],
+    re_b: ["re_b", "mi_b_q"],
+    mi_b: ["mi_b", "fa_q"],
+    mi_q: ["mi_q", "fa"],
+  },
+  "Minor Third": {
+    do: ["do", "mi_b"],
+    re: ["re", "fa"],
+    mi: ["mi", "sol"],
+    do_b: ["do_b", "mi"],
+    re_b: ["re_b", "mi"],
+    mi_b: ["mi_b", "sol_b"],
+    mi_q: ["mi_q", "mii_q"],
+  },
+  Octave: {
+    do: ["do", "doo"],
+    re: ["re", "ree"],
+    mi: ["mi", "mii"],
+    do_b: ["do_b", "doo_b"],
+    re_b: ["re_b", "ree_b"],
+    mi_b: ["mi_b", "mii_b"],
+    mi_q: ["mi_q", "mii_q"],
+  },
+};
 
 const IntervalTrainingScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -115,19 +183,53 @@ const IntervalTrainingScreen = () => {
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
     setCurrentInterval(randomInterval);
 
-    const notesToPlay = intervalSteps[randomInterval];
+    //old alogorthm - one array for each interval for
+
+    // const notesToPlay = intervalSteps[randomInterval];
+    // playSoundSequence(notesToPlay);
+
+    ////////////////////////
+    // 2. اختيار نغمة بداية عشوائية من المسافة المختارة
+    const intervalData =
+      intervalStepsObject[randomInterval as keyof typeof intervalStepsObject];
+    const availableStartingNotes = Object.keys(
+      intervalData
+    ) as StartingNoteType[];
+    const randomStartingNote =
+      availableStartingNotes[
+        Math.floor(Math.random() * availableStartingNotes.length)
+      ];
+
+    // 3. حفظ النغمة الحالية للسؤال
+    const notesToPlay = intervalData[randomStartingNote];
+    setCurrentIntervalSound(notesToPlay);
+
+    // 4. تشغيل النغمات
     playSoundSequence(notesToPlay);
   };
 
   const playSpecificInterval = (intervalName: string) => {
-    const notesToPlay = intervalSteps[intervalName];
-    playSoundSequence(notesToPlay);
+    // const notesToPlay = intervalSteps[intervalName];
+    // playSoundSequence(notesToPlay);
+
+    if (currentIntervalSound.length > 0 && currentInterval) {
+      const currentStartingNote = currentIntervalSound[0];
+      const intervalData =
+        intervalStepsObject[
+          currentInterval as keyof typeof intervalStepsObject
+        ];
+      const notesToPlay = intervalData[currentStartingNote as StartingNoteType];
+      playSoundSequence(notesToPlay);
+    }
   };
 
   const repeatInterval = () => {
-    if (currentInterval) {
-      const notesToPlay = intervalSteps[currentInterval];
-      playSoundSequence(notesToPlay);
+    // if (currentInterval) {
+    //   const notesToPlay = intervalSteps[currentInterval];
+    //   playSoundSequence(notesToPlay);
+    // }
+    if (currentIntervalSound.length > 0) {
+      playSoundSequence(currentIntervalSound);
     }
   };
 
