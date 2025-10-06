@@ -35,7 +35,7 @@ type IntervalType =
   | "Minor Third"
   | "Octave";
 
-type StartingNoteType = "do" | "re" | "mi" | "do_b" | "re_b" | "mi_b" | "mi_q";
+type StartingNoteType = "do" | "re" | "mi" | "re_b" | "mi_b" | "mi_q";
 const intervalStepsObject: Record<
   IntervalType,
   Record<StartingNoteType, string[]>
@@ -44,16 +44,14 @@ const intervalStepsObject: Record<
     do: ["do", "do"],
     re: ["re", "re"],
     mi: ["mi", "mi"],
-    do_b: ["do_b", "doo_b"],
-    re_b: ["re_b", "ree_b"],
-    mi_b: ["mi_b", "mii_b"],
-    mi_q: ["mi_q", "mii_q"],
+    re_b: ["re_b", "re_b"],
+    mi_b: ["mi_b", "mi_b"],
+    mi_q: ["mi_q", "mi_q"],
   },
   "Minor Second": {
     do: ["do", "re_b"],
     re: ["re", "mi_b"],
     mi: ["mi", "fa"],
-    do_b: ["do_b", "do"],
     re_b: ["re_b", "re"],
     mi_b: ["mi_b", "mi"],
     mi_q: ["mi_q", "fa_q"],
@@ -62,7 +60,6 @@ const intervalStepsObject: Record<
     do: ["do", "re"],
     re: ["re", "mi"],
     mi: ["mi", "fa_d"],
-    do_b: ["do_b", "re_b"],
     re_b: ["re_b", "mi_b"],
     mi_b: ["mi_b", "fa"],
     mi_q: ["mi_q", "fa_d_q"],
@@ -71,7 +68,6 @@ const intervalStepsObject: Record<
     do: ["do", "re_q"],
     re: ["re", "mi_q"],
     mi: ["mi", "fa_d_q"],
-    do_b: ["do_b", "do_d_q"],
     re_b: ["re_b", "mi_b_q"],
     mi_b: ["mi_b", "fa_q"],
     mi_q: ["mi_q", "fa"],
@@ -80,16 +76,14 @@ const intervalStepsObject: Record<
     do: ["do", "mi_b"],
     re: ["re", "fa"],
     mi: ["mi", "sol"],
-    do_b: ["do_b", "mi"],
     re_b: ["re_b", "mi"],
     mi_b: ["mi_b", "sol_b"],
-    mi_q: ["mi_q", "mii_q"],
+    mi_q: ["mi_q", "sol_q"],
   },
   Octave: {
     do: ["do", "doo"],
     re: ["re", "ree"],
     mi: ["mi", "mii"],
-    do_b: ["do_b", "doo_b"],
     re_b: ["re_b", "ree_b"],
     mi_b: ["mi_b", "mii_b"],
     mi_q: ["mi_q", "mii_q"],
@@ -204,7 +198,9 @@ const IntervalTrainingScreen = () => {
     const notesToPlay = intervalData[randomStartingNote];
     setCurrentIntervalSound(notesToPlay);
 
+    console.log("notes to play", notesToPlay);
     // 4. تشغيل النغمات
+
     playSoundSequence(notesToPlay);
   };
 
