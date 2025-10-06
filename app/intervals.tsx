@@ -215,8 +215,16 @@ const IntervalTrainingScreen = () => {
   };
 
   const playSpecificInterval = (intervalName: string) => {
-    const notesToPlay = intervalSteps[intervalName];
-    playSoundSequence(currentIntervalSound);
+    console.log("Playing specific interval:", intervalName);
+    if (intervalName === currentInterval) {
+      playSoundSequence(currentIntervalSound);
+    } else {
+      const notesToPlay = intervalSteps[intervalName];
+      // console.log("Notes to play:", notesToPlay);
+      const randomNotes2 =
+        notesToPlay[Math.floor(Math.random() * notesToPlay.length)];
+      playSoundSequence(randomNotes2);
+    }
   };
 
   const repeatInterval = () => {
