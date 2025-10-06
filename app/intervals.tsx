@@ -19,102 +19,13 @@ import { soundFolders } from "@/constants/scales";
 import OptionButton2 from "@/components/Buttons/OptionButton2";
 import UpgradeModal from "@/components/ui/UpgradeModal";
 
-const intervalSteps: Record<string, string[][]> = {
-  "Unison": [
-    ["do", "do"],
-    ["re", "re"],
-    ["mi", "mi"],
-    ["fa", "fa"],
-    ["sol", "sol"],
-    ["la", "la"],
-    ["si", "si"],
-    ["doo", "doo"],
-    ["ree", "ree"],
-    ["mi_q", "mi_q"],
-    ["fa_d", "fa_d"],
-    ["sol_q", "sol_q"],
-    ["la_q", "la_q"],
-    ["si_q", "si_q"],
-    ["re_b", "re_b"],
-    ["mi_b", "mi_b"],
-    ["sol_b", "sol_b"],
-    ["la_b", "la_b"],
-    ["si_b", "si_b"],
-  ],
-  "Minor Second": [
-    ["do", "re_b"],
-    ["re", "mi_b"],
-    ["mi", "fa"],
-    ["fa", "sol_b"],
-    ["sol", "la_b"],
-    ["la", "si_b"],
-    ["si", "doo"],
-    ["doo", "ree_b"],
-    ["mi_b", "mi"],
-    ["fa_d", "sol"],
-    ["sol_b", "sol"],
-    ["la_b", "la"],
-    ["si_b", "si"],
-  ],
-  "Major Second": [
-    ["do", "re"],
-    ["re", "mi"],
-    ["mi", "fa_d"],
-    ["fa", "sol"],
-    ["sol", "la"],
-    ["la", "si"],
-    ["si", "doo_d"],
-    ["doo", "ree"],
-
-    ["sol_b", "la_b"],
-
-    ["re_b", "mi_b"],
-    ["mi_b", "fa"],
-
-    ["la_b", "si_b"],
-    ["si_b", "doo"],
-  ],
-  "Three Quarters": [
-    ["do", "re_q"],
-    ["re", "mi_q"],
-    ["mi", "fa_d_q"],
-
-    ["fa", "sol_q"],
-    ["sol", "la_q"],
-    ["la", "si_q"],
-    ["si", "doo_d_q"],
-
-    ["doo", "ree_q"],
-    ["ree", "mii_q"],
-    ["sol_b", "la_b_q"],
-
-    ["re_b", "mi_b_q"],
-    ["mi_b", "fa_q"],
-
-    ["la_b", "si_b_q"],
-    ["si_b", "doo_q"],
-  ],
-  "Minor Third": [
-    ["do", "mi_b"],
-    ["re", "fa"],
-    ["mi", "sol"],
-    ["fa", "la_b"],
-    ["sol", "si_b"],
-    ["la", "do"],
-    ["si", "ree"],
-
-    ["re_b", "mi"],
-    ["mi_b", "sol_b"],
-    ["fa_d", "la"],
-    ["la_b", "si"],
-    ["si_b", "ree_b"],
-  ],
-  "Octave": [
-    ["do", "doo"],
-    ["re", "ree"],
-    ["re_b", "ree_b"],
-    ["mi_q", "mii_q"],
-  ],
+const intervalSteps: Record<string, string[]> = {
+  Unison: ["re", "re"],
+  "Minor Second": ["re", "mi_b"],
+  "Major Second": ["re", "mi"],
+  "Three Quarters": ["re", "mi_q"],
+  "Minor Third": ["re", "fa"],
+  Octave: ["re", "ree"],
 };
 
 const IntervalTrainingScreen = () => {
@@ -204,38 +115,24 @@ const IntervalTrainingScreen = () => {
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
     setCurrentInterval(randomInterval);
 
-    const noteSequences = intervalSteps[randomInterval];
-    const randomNotes =
-      noteSequences[Math.floor(Math.random() * noteSequences.length)];
-
-    setCurrentIntervalSound(randomNotes); // نخزن الصوت الحالي
-
-    playSoundSequence(randomNotes);
-    console.log("Playing interval:", randomNotes);
+    const notesToPlay = intervalSteps[randomInterval];
+    playSoundSequence(notesToPlay);
   };
 
   const playSpecificInterval = (intervalName: string) => {
-    console.log("Playing specific interval:", intervalName);
-    if (intervalName === currentInterval) {
-      playSoundSequence(currentIntervalSound);
-    } else {
-      const notesToPlay = intervalSteps[intervalName];
-      // console.log("Notes to play:", notesToPlay);
-      const randomNotes2 =
-        notesToPlay[Math.floor(Math.random() * notesToPlay.length)];
-      playSoundSequence(randomNotes2);
-    }
+    const notesToPlay = intervalSteps[intervalName];
+    playSoundSequence(notesToPlay);
   };
 
   const repeatInterval = () => {
     if (currentInterval) {
       const notesToPlay = intervalSteps[currentInterval];
-      playSoundSequence(currentIntervalSound);
+      playSoundSequence(notesToPlay);
     }
   };
 
   const handleSelection = (interval: string) => {
-    if (isAnswered) return;
+    // if (isAnswered) return;
 
     playSpecificInterval(interval);
     setUserSelection(interval);
@@ -401,7 +298,7 @@ const IntervalTrainingScreen = () => {
                     styles.maqamButtonCorrect,
                 ]}
                 onPress={() => handleSelection(interval)}
-                disabled={isAnswered || !selectedIntervals.includes(interval)}
+                // disabled={isAnswered || !selectedIntervals.includes(interval)}
               >
                 <Text style={styles.maqamName}>
                   {state.language === "en"
