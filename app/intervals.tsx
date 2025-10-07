@@ -20,12 +20,12 @@ import OptionButton2 from "@/components/Buttons/OptionButton2";
 import UpgradeModal from "@/components/ui/UpgradeModal";
 
 const intervalSteps: Record<string, string[]> = {
-  "Unison": ["re", "re"],
+  Unison: ["re", "re"],
   "Minor Second": ["re", "mi_b"],
   "Major Second": ["re", "mi"],
   "Three Quarters": ["re", "mi_q"],
   "Minor Third": ["re", "fa"],
-  "Octave": ["re", "ree"],
+  Octave: ["re", "ree"],
 };
 type IntervalType =
   | "Unison"
@@ -40,7 +40,7 @@ const intervalStepsObject: Record<
   IntervalType,
   Record<StartingNoteType, string[]>
 > = {
-  "Unison": {
+  Unison: {
     do: ["do", "do"],
     re: ["re", "re"],
     re_b: ["re_b", "re_b"],
@@ -80,7 +80,7 @@ const intervalStepsObject: Record<
     mi_b: ["mi_b", "sol_b"],
     mi_q: ["mi_q", "sol_q"],
   },
-  "Octave": {
+  Octave: {
     do: ["do", "doo"],
     re: ["re", "ree"],
     mi: ["mi", "mii"],
@@ -176,14 +176,14 @@ const IntervalTrainingScreen = () => {
     const randomInterval =
       selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
     setCurrentInterval(randomInterval);
-
+    console.log(randomInterval);
     //old alogorthm - one array for each interval for
 
     // const notesToPlay = intervalSteps[randomInterval];
     // playSoundSequence(notesToPlay);
 
     ////////////////////////
-    // 2. اختيار نغمة بداية عشوائية من المسافة المختارة
+
     const intervalData =
       intervalStepsObject[randomInterval as keyof typeof intervalStepsObject];
     const availableStartingNotes = Object.keys(
@@ -193,14 +193,8 @@ const IntervalTrainingScreen = () => {
       availableStartingNotes[
         Math.floor(Math.random() * availableStartingNotes.length)
       ];
-
-    // 3. حفظ النغمة الحالية للسؤال
     const notesToPlay = intervalData[randomStartingNote];
     setCurrentIntervalSound(notesToPlay);
-
-    console.log("notes to play", notesToPlay);
-    // 4. تشغيل النغمات
-
     playSoundSequence(notesToPlay);
   };
 
@@ -231,8 +225,15 @@ const IntervalTrainingScreen = () => {
   };
 
   const handleSelection = (interval: string) => {
-    // if (isAnswered) return;
-
+    if (isAnswered && showAnswer) {
+      playSpecificInterval(interval);
+      setUserSelection(interval);
+      const timer = setTimeout(() => {
+        setUserSelection(null);
+      }, 1000);
+      addTimer(timer);
+      return;
+    }
     playSpecificInterval(interval);
     setUserSelection(interval);
 
